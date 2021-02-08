@@ -5,16 +5,9 @@ from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
 import pickle
 import os
-import psycopg2
-DATABASE_URL = os.environ['DATABASE_URL']
-
-conn = psycopg2.connect(DATABASE_URL, sslmode='require')
-
-cur = conn.cursor()
-cur.execute('''CREATE TABLE IF NOT EXISTS STORE
-      (email CHAR(50) PRIMARY KEY     NOT NULL;)''')
-conn.commit()
-cur.close()
+from pymongo import MongoClient
+client = MongoClient(os.environ['MONGODB_URI'])
+db = client.edubuddy
 app = Flask(__name__)
 
 
@@ -169,20 +162,10 @@ def build_services():
     drive_service = build('drive', 'v3', credentials=credentials)
     oauth_service = build('oauth2', 'v2', credentials=credentials)
     email = oauth_service.userinfo().get()["email"]
-    try:
-        cur = conn.cursor()
+    if db.store.find({'email': email}).count() == 0:
+        db.store.insert_one({'email':email})
 
-        try:
-            cur.execute( """INSERT INTO STORE 
-                          VALUES (%s)""", (email))
-        except psycopg2.IntegrityError:
-            conn.rollback()
-        else:
-            conn.commit()
 
-        cur.close()
-    except Exception as e:
-        print('ERROR:', e[0])
 
 
 @app.route("/select_course", methods=['POST', 'GET'])

@@ -16,7 +16,6 @@ google-auth-httplib2 = "==0.0.4"
 google-auth-oauthlib = "==0.4.2"
 googleapis-common-protos = "==1.52.0"
 httplib2 = "==0.18.1"
-psycopg2-binary= "==2.8.6"
 idna = "==2.10"
 itsdangerous = "==1.1.0"
 oauthlib = "==3.1.0"
@@ -35,6 +34,7 @@ Flask-Login = "==0.5.0"
 Jinja2 = "==2.11.3"
 MarkupSafe = "==1.1.1"
 Werkzeug = "==1.0.1"
+pymongo = "*"
 
 [dev-packages]
 
