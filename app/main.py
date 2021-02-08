@@ -4,8 +4,17 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
 import pickle
-import os.path
+import os
+import psycopg2
+DATABASE_URL = os.environ['DATABASE_URL']
 
+conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+
+cur = conn.cursor()
+cur.execute('''CREATE TABLE IF NOT EXISTS STORE
+      (email CHAR(50) PRIMARY KEY     NOT NULL;)''')
+conn.commit()
+cur.close()
 app = Flask(__name__)
 
 
@@ -137,7 +146,8 @@ def show_auth_url():
         CLIENT_SECRETS_FILE = "app/client_secret.json"
         SCOPES = ['https://www.googleapis.com/auth/classroom.courses.readonly',
                   'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly',
-                  'https://www.googleapis.com/auth/drive']
+                  'https://www.googleapis.com/auth/drive',
+                  'https://www.googleapis.com/auth/userinfo.email']
 
         def return_console_url(
                 self,
@@ -157,6 +167,22 @@ def build_services():
     global drive_service, classroom_service
     classroom_service = build('classroom', 'v1', credentials=credentials)
     drive_service = build('drive', 'v3', credentials=credentials)
+    oauth_service = build('oauth2', 'v2', credentials=credentials)
+    email = oauth_service.userinfo().get()["email"]
+    try:
+        cur = conn.cursor()
+
+        try:
+            cur.execute( """INSERT INTO STORE 
+                          VALUES (%s)""", (email))
+        except psycopg2.IntegrityError:
+            conn.rollback()
+        else:
+            conn.commit()
+
+        cur.close()
+    except Exception as e:
+        print('ERROR:', e[0])
 
 
 @app.route("/select_course", methods=['POST', 'GET'])
