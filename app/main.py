@@ -102,7 +102,7 @@ def return_storage_drive_folder(course: str) -> str:
 @app.route("/")
 def home_view():
     if 'credentials' not in flask.session:
-        return redirect(url_for('login'))
+        return flask.render_template("signin_button.html")
     else:
         return redirect(url_for("select_course"))
 
@@ -110,7 +110,7 @@ def home_view():
 @app.route("/select_course", methods=['POST', 'GET'])
 def select_course():
     if 'credentials' not in flask.session:
-        return redirect(url_for('login'))
+        return flask.render_template("signin_button.html")
     elif request.method == 'POST':
         flask.session['course'] = request.form['course']
         assign_ids()
