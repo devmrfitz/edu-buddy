@@ -102,7 +102,7 @@ def home_view():
     if 'credentials' not in flask.session:
         return redirect(url_for('login'))
     else:
-        return redirect(url_for("/select_course"))
+        return redirect(url_for("select_course"))
 
 
 @app.route("/select_course", methods=['POST', 'GET'])
@@ -171,9 +171,9 @@ def oauth2callback():
 
     flask.session['credentials'] = credentials_to_dict(credentials)
 
-    mark_attendance()
+    mark_attendance(credentials)
     return "trigger"
-    return flask.redirect(flask.url_for('select_course'))
+    #return flask.redirect(flask.url_for('select_course'))
 
 
 def credentials_to_dict(credentials):
@@ -185,9 +185,8 @@ def credentials_to_dict(credentials):
             'scopes': credentials.scopes}
 
 
-def mark_attendance():
-    oauth_service = build('oauth2', 'v2',
-                          credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
+def mark_attendance(credentials):
+    oauth_service = build('oauth2', 'v2', credentials=credentials)
     email = oauth_service.userinfo().get().execute()["email"]
     if db.store.find({'email': email}).count() == 0:
         db.store.insert_one({'email': email})
