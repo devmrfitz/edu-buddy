@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, session, url_for, redirect
+from flask import Flask, request, render_template, url_for, redirect
 import flask
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
@@ -26,6 +26,7 @@ def transfer_file(id: str, location_id: str):
 
 
 def assign_ids():
+    session = flask.session
     if session['course'] == "maths":
         session['course_id'] = "249368758666"
         session['topic_id'] = "250043217503"
@@ -67,6 +68,7 @@ def return_parent_drive_folder() -> str:
 
 
 def return_storage_drive_folder(course: str) -> str:
+    session=flask.session
     drive_service = build('drive', 'v3',
                           credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
     session['parent_id'] = return_parent_drive_folder()
@@ -97,7 +99,7 @@ def return_storage_drive_folder(course: str) -> str:
 
 @app.route("/")
 def home_view():
-    if 'credentials' not in session:
+    if 'credentials' not in flask.session:
         return redirect(url_for('login'))
     else:
         return redirect(url_for("/select_course"))
@@ -106,23 +108,23 @@ def home_view():
 @app.route("/select_course", methods=['POST', 'GET'])
 def select_course():
     if request.method == 'POST':
-        session['course'] = request.form['course']
+        flask.session['course'] = request.form['course']
         assign_ids()
-        storage_folder_id = return_storage_drive_folder(session['course'])
+        storage_folder_id = return_storage_drive_folder(flask.session['course'])
         classroom_service = build('classroom', 'v1',
                                   credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
-        results = classroom_service.courses().courseWorkMaterials().list(courseId=session['course_id']).execute()
+        results = classroom_service.courses().courseWorkMaterials().list(courseId=flask.session['course_id']).execute()
         for i in results['courseWorkMaterial']:
-            if session['topic_id'] == i['topicId'] or (session['course'] == "ihci" and "Lecture Slides" in i['title']):
+            if flask.session['topic_id'] == i['topicId'] or (flask.session['course'] == "ihci" and "Lecture Slides" in i['title']):
                 id = ""
-                if session['course'] == "ihci" or session['course'] == "maths":
+                if flask.session['course'] == "ihci" or flask.session['course'] == "maths":
                     id = i['materials'][0]['driveFile']['driveFile']['id']
-                elif session['course'] == "ip":
+                elif flask.session['course'] == "ip":
                     for j in i['materials']:
                         if ".ppt" in j['driveFile']['driveFile']['title']:
                             id = j['driveFile']['driveFile']['id']
                             break
-                elif session['course'] == "dc":
+                elif flask.session['course'] == "dc":
                     for j in i['materials']:
                         if "Lecture " in j['driveFile']['driveFile']['title'] and ".pdf" in j['driveFile']['driveFile'][
                             'title']:
@@ -143,16 +145,16 @@ def login():
               'https://www.googleapis.com/auth/userinfo.email',
               'openid']
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file("app/client_secret.json", scopes=SCOPES)
-    flow.redirect_uri = "https://www.edu-buddy.herokuapp.com/oauth2callback"
+    flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
     authorization_url, state = flow.authorization_url(access_type="offline", include_granted_scopes="true",
                                                       hd="iiitd.ac.in")
-    session['state'] = state
+    flask.session['state'] = state
     return redirect(authorization_url)
 
 
 @app.route("/oauth2callback")
 def oauth2callback():
-    state = session['state']
+    state = flask.session['state']
     SCOPES = ['https://www.googleapis.com/auth/classroom.courses.readonly',
               'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly',
               'https://www.googleapis.com/auth/drive',
