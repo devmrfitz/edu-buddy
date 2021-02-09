@@ -161,6 +161,7 @@ def oauth2callback():
               'https://www.googleapis.com/auth/drive',
               'https://www.googleapis.com/auth/userinfo.email',
               'openid']
+    return "trigger"
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
         "app/client_secret.json", scopes=SCOPES, state=state)
     flow.redirect_uri = url_for('oauth2callback', _external=True)
@@ -169,7 +170,7 @@ def oauth2callback():
     credentials = flow.credentials
     flask.session['credentials'] = credentials_to_dict(credentials)
     mark_attendance()
-    return "trigger"
+
     return flask.redirect(flask.url_for('select_course'))
 
 
