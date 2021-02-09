@@ -8,7 +8,9 @@ import os
 from pymongo import MongoClient
 client = MongoClient(os.environ['MONGODB_URI'])
 db = client.edubuddy
+flow = None
 app = Flask(__name__)
+
 
 
 def transfer_file(id: str, location_id: str):
