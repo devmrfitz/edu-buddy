@@ -140,7 +140,8 @@ def show_auth_url():
         SCOPES = ['https://www.googleapis.com/auth/classroom.courses.readonly',
                   'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly',
                   'https://www.googleapis.com/auth/drive',
-                  'https://www.googleapis.com/auth/userinfo.email']
+                  'https://www.googleapis.com/auth/userinfo.email',
+                  'openid']
 
         def return_console_url(
                 self,
@@ -161,7 +162,7 @@ def build_services():
     classroom_service = build('classroom', 'v1', credentials=credentials)
     drive_service = build('drive', 'v3', credentials=credentials)
     oauth_service = build('oauth2', 'v2', credentials=credentials)
-    email = oauth_service.userinfo().get()["email"]
+    email = oauth_service.userinfo().get().execute()["email"]
     if db.store.find({'email': email}).count() == 0:
         db.store.insert_one({'email':email})
 
