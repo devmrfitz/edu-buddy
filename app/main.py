@@ -109,7 +109,9 @@ def home_view():
 
 @app.route("/select_course", methods=['POST', 'GET'])
 def select_course():
-    if request.method == 'POST':
+    if 'credentials' not in flask.session:
+        return redirect(url_for('login'))
+    elif request.method == 'POST':
         flask.session['course'] = request.form['course']
         assign_ids()
         storage_folder_id = return_storage_drive_folder(flask.session['course'])
