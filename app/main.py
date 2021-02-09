@@ -3,6 +3,7 @@ import flask
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 import os
+import requests
 from pymongo import MongoClient
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
@@ -11,6 +12,7 @@ client = MongoClient(os.environ['MONGODB_URI'])
 db = client.edubuddy
 app = Flask(__name__)
 app.secret_key = os.environ['secret_key']
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 
 def transfer_file(id: str, location_id: str):
@@ -145,35 +147,36 @@ def login():
               'https://www.googleapis.com/auth/drive',
               'https://www.googleapis.com/auth/userinfo.email',
               'openid']
+
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file("app/client_secret.json", scopes=SCOPES)
     flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
-    authorization_url, state = flow.authorization_url(access_type="offline", include_granted_scopes="true",
-                                                      hd="iiitd.ac.in")
+    authorization_url, state = flow.authorization_url(access_type="offline", include_granted_scopes="true")
     flask.session['state'] = state
     return redirect(authorization_url)
 
 
-@app.route("/oauth2callback")
+@app.route('/oauth2callback')
 def oauth2callback():
-
-    state = flask.session['state']
     SCOPES = ['https://www.googleapis.com/auth/classroom.courses.readonly',
               'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly',
               'https://www.googleapis.com/auth/drive',
               'https://www.googleapis.com/auth/userinfo.email',
               'openid']
+    # Specify the state when creating the flow in the callback so that it can
+    # verified in the authorization server response.
+    state = flask.session['state']
 
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
         "app/client_secret.json", scopes=SCOPES, state=state)
-    flow.redirect_uri = url_for('oauth2callback', _external=True)
+    flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
+
     authorization_response = flask.request.url
     flow.fetch_token(authorization_response=authorization_response)
-    credentials = flow.credentials
 
+    credentials = flow.credentials
     flask.session['credentials'] = credentials_to_dict(credentials)
-    mark_attendance()
-    return "trigger"
-    #return flask.redirect(flask.url_for('select_course'))
+
+    return flask.redirect(flask.url_for('select_course'))
 
 
 def credentials_to_dict(credentials):
@@ -186,7 +189,8 @@ def credentials_to_dict(credentials):
 
 
 def mark_attendance():
-    oauth_service = build('oauth2', 'v2', credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
+    credentials = google.oauth2.credentials.Credentials(flask.session['credentials'])
+    oauth_service = build('oauth2', 'v2', credentials=credentials)
     email = oauth_service.userinfo().get().execute()["email"]
     if db.store.find({'email': email}).count() == 0:
         db.store.insert_one({'email': email})
@@ -195,3 +199,30 @@ def mark_attendance():
 @app.route("/final")
 def final():
     return render_template("final.html", id=flask.session['parent_id'])
+
+
+@app.route('/revoke')
+def revoke():
+    if 'credentials' not in flask.session:
+        return ('You need to <a href="/authorize">authorize</a> before ' +
+                'testing the code to revoke credentials.')
+
+    credentials = google.oauth2.credentials.Credentials(
+        **flask.session['credentials'])
+
+    revoke = requests.post('https://oauth2.googleapis.com/revoke',
+                           params={'token': credentials.token},
+                           headers={'content-type': 'application/x-www-form-urlencoded'})
+
+    status_code = getattr(revoke, 'status_code')
+    if status_code == 200:
+        return 'Credentials successfully revoked.'
+    else:
+        return 'An error occurred.'
+
+
+@app.route('/clear')
+def clear_credentials():
+    if 'credentials' in flask.session:
+        del flask.session['credentials']
+    return 'Credentials have been cleared.<br><br>'
