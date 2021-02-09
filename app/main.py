@@ -168,8 +168,9 @@ def oauth2callback():
     authorization_response = flask.request.url
     flow.fetch_token(authorization_response=authorization_response)
     credentials = flow.credentials
-    return "trigger"
+
     flask.session['credentials'] = credentials_to_dict(credentials)
+    return "trigger"
     mark_attendance()
 
     return flask.redirect(flask.url_for('select_course'))
