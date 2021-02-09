@@ -164,8 +164,8 @@ def oauth2callback():
 
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
         "app/client_secret.json", scopes=SCOPES, state=state)
-    return "trigger"
     flow.redirect_uri = url_for('oauth2callback', _external=True)
+    return "trigger"
     authorization_response = flask.request.url
     flow.fetch_token(authorization_response=authorization_response)
     credentials = flow.credentials
