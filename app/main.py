@@ -166,9 +166,9 @@ def oauth2callback():
         "app/client_secret.json", scopes=SCOPES, state=state)
     flow.redirect_uri = url_for('oauth2callback', _external=True)
     authorization_response = flask.request.url
-    return "trigger"
     flow.fetch_token(authorization_response=authorization_response)
     credentials = flow.credentials
+    return "trigger"
     flask.session['credentials'] = credentials_to_dict(credentials)
     mark_attendance()
 
