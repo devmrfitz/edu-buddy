@@ -161,9 +161,10 @@ def oauth2callback():
               'https://www.googleapis.com/auth/drive',
               'https://www.googleapis.com/auth/userinfo.email',
               'openid']
-    return "trigger"
+
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
         "app/client_secret.json", scopes=SCOPES, state=state)
+    return "trigger"
     flow.redirect_uri = url_for('oauth2callback', _external=True)
     authorization_response = flask.request.url
     flow.fetch_token(authorization_response=authorization_response)
