@@ -9,10 +9,10 @@ import google.oauth2.credentials
 import google_auth_oauthlib.flow
 
 client = MongoClient(os.environ['MONGODB_URI'])
-db = client.edubuddy
+db = client['edubuddy']
 app = Flask(__name__)
 app.secret_key = os.environ['secret_key']
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = os.environ['local']
 
 
 def transfer_file(id: str, location_id: str):
@@ -175,7 +175,7 @@ def oauth2callback():
 
     credentials = flow.credentials
     flask.session['credentials'] = credentials_to_dict(credentials)
-
+    mark_attendance()
     return flask.redirect(flask.url_for('select_course'))
 
 
@@ -189,11 +189,9 @@ def credentials_to_dict(credentials):
 
 
 def mark_attendance():
-    credentials = google.oauth2.credentials.Credentials(flask.session['credentials'])
-    oauth_service = build('oauth2', 'v2', credentials=credentials)
+    oauth_service = build('oauth2', 'v2', credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
     email = oauth_service.userinfo().get().execute()["email"]
-    if db.store.find({'email': email}).count() == 0:
-        db.store.insert_one({'email': email})
+    db.store.insert_one({'email': email})
 
 
 @app.route("/final")
@@ -226,3 +224,12 @@ def clear_credentials():
     if 'credentials' in flask.session:
         del flask.session['credentials']
     return 'Credentials have been cleared.<br><br>'
+
+
+# Force HTTPS
+@app.before_request
+def before_request():
+    if os.environ['local'] == "0" and request.url.startswith('http://'):
+        url = request.url.replace('http://', 'https://', 1)
+        code = 301
+        return redirect(url, code=code)
