@@ -68,7 +68,7 @@ def return_parent_drive_folder() -> str:
 
 
 def return_storage_drive_folder(course: str) -> str:
-    session=flask.session
+    session = flask.session
     drive_service = build('drive', 'v3',
                           credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
     session['parent_id'] = return_parent_drive_folder()
@@ -115,7 +115,8 @@ def select_course():
                                   credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
         results = classroom_service.courses().courseWorkMaterials().list(courseId=flask.session['course_id']).execute()
         for i in results['courseWorkMaterial']:
-            if flask.session['topic_id'] == i['topicId'] or (flask.session['course'] == "ihci" and "Lecture Slides" in i['title']):
+            if flask.session['topic_id'] == i['topicId'] or (
+                    flask.session['course'] == "ihci" and "Lecture Slides" in i['title']):
                 id = ""
                 if flask.session['course'] == "ihci" or flask.session['course'] == "maths":
                     id = i['materials'][0]['driveFile']['driveFile']['id']
@@ -132,7 +133,7 @@ def select_course():
                             break
                 transfer_file(id, storage_folder_id)
 
-        return redirect(url_for('auth_received'))
+        return redirect(url_for('final'))
     else:
         return render_template("select_course.html")
 
@@ -187,3 +188,8 @@ def mark_attendance():
     email = oauth_service.userinfo().get().execute()["email"]
     if db.store.find({'email': email}).count() == 0:
         db.store.insert_one({'email': email})
+
+
+@app.route("/final")
+def final():
+    return render_template("final.html", id=flask.session['parent_id'])
