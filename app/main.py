@@ -138,26 +138,26 @@ def show_auth_url():
 
 
     else:
-        global flow
         CLIENT_SECRETS_FILE = "app/client_secret.json"
         SCOPES = ['https://www.googleapis.com/auth/classroom.courses.readonly',
                   'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly',
                   'https://www.googleapis.com/auth/drive',
                   'https://www.googleapis.com/auth/userinfo.email',
                   'openid']
-
-        def return_console_url(
-                self,
-                **kwargs
-        ):
-            kwargs.setdefault("prompt", "consent")
-            self.redirect_uri = self._OOB_REDIRECT_URI
-            auth_url, _ = self.authorization_url(**kwargs)
-
-            return render_template("show_auth_url.html", url=auth_url)
-
         flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
         return return_console_url(flow)
+
+
+def return_console_url(
+        self,
+        **kwargs
+):
+    kwargs.setdefault("prompt", "consent")
+    self.redirect_uri = self._OOB_REDIRECT_URI
+    auth_url, _ = self.authorization_url(**kwargs)
+
+    return render_template("show_auth_url.html", url=auth_url)
+
 
 
 def build_services():
