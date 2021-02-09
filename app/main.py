@@ -112,19 +112,19 @@ def home_view():
             else:
                 # auth needed
                 return """<form action="/show-auth-url">  
-    <input type="submit" value="Start auth" />
+    <input type="submit" value="Login" />
     </form>"""
     else:
         return """<form action="/show-auth-url">  
-    <input type="submit" value="Start auth" />
+    <input type="submit" value="Login" />
     </form>"""
 
 
 @app.route("/show-auth-url", methods=['POST', 'GET'])
 def show_auth_url():
-    global flow
+    global flow, offline
     if request.method == 'POST':
-        global code, flow
+        global code, flow, offline
         code = request.form['code']
         flow.fetch_token(code=code)
         global credentials
@@ -136,6 +136,7 @@ def show_auth_url():
 
 
     else:
+        global flow
         CLIENT_SECRETS_FILE = "app/client_secret.json"
         SCOPES = ['https://www.googleapis.com/auth/classroom.courses.readonly',
                   'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly',
