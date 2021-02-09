@@ -154,7 +154,6 @@ def login():
 
 @app.route("/oauth2callback")
 def oauth2callback():
-    return "trigger"
     state = flask.session['state']
     SCOPES = ['https://www.googleapis.com/auth/classroom.courses.readonly',
               'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly',
@@ -169,6 +168,7 @@ def oauth2callback():
     credentials = flow.credentials
     flask.session['credentials'] = credentials_to_dict(credentials)
     mark_attendance()
+    return "trigger"
     return flask.redirect(flask.url_for('select_course'))
 
 
