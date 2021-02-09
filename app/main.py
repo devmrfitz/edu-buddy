@@ -155,6 +155,7 @@ def login():
 
 @app.route("/oauth2callback")
 def oauth2callback():
+
     state = flask.session['state']
     SCOPES = ['https://www.googleapis.com/auth/classroom.courses.readonly',
               'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly',
@@ -170,8 +171,7 @@ def oauth2callback():
     credentials = flow.credentials
 
     flask.session['credentials'] = credentials_to_dict(credentials)
-
-    mark_attendance(credentials)
+    mark_attendance()
     return "trigger"
     #return flask.redirect(flask.url_for('select_course'))
 
@@ -185,8 +185,8 @@ def credentials_to_dict(credentials):
             'scopes': credentials.scopes}
 
 
-def mark_attendance(credentials):
-    oauth_service = build('oauth2', 'v2', credentials=credentials)
+def mark_attendance():
+    oauth_service = build('oauth2', 'v2', credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
     email = oauth_service.userinfo().get().execute()["email"]
     if db.store.find({'email': email}).count() == 0:
         db.store.insert_one({'email': email})
