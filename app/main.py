@@ -201,6 +201,10 @@ def login():
 
 @app.route('/oauth2callback')
 def oauth2callback():
+    if 'dest_after_auth' not in flask.session:
+        print("1NOT HERE", flush=True)
+    else:
+        print("1HERE", flush=True)
     state = flask.session['state']
 
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
