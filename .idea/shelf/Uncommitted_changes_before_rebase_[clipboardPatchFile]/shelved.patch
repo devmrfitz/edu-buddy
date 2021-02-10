@@ -1,0 +1,133 @@
+Index: app/main.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from flask import Flask, request, render_template, url_for, redirect\nimport flask\nfrom google_auth_oauthlib.flow import InstalledAppFlow\nfrom googleapiclient.discovery import build\nimport os\nimport requests\nfrom pymongo import MongoClient\nimport google.oauth2.credentials\nimport google_auth_oauthlib.flow\n\nclient = MongoClient(os.environ['MONGODB_URI'])\ndb = client['edubuddy']\napp = Flask(__name__)\napp.secret_key = os.environ['secret_key']\nos.environ['OAUTHLIB_INSECURE_TRANSPORT'] = os.environ['local']\n\n\n# Force HTTPS\n@app.before_request\ndef before_request():\n    if os.environ['local'] == \"0\" and request.url.startswith('http://'):\n        url = request.url.replace('http://', 'https://', 1)\n        code = 301\n        return redirect(url, code=code)\n\n\ndef credentials_to_dict(credentials):\n    return {'token': credentials.token,\n            'refresh_token': credentials.refresh_token,\n            'token_uri': credentials.token_uri,\n            'client_id': credentials.client_id,\n            'client_secret': credentials.client_secret,\n            'scopes': credentials.scopes}\n\n\ndef mark_attendance():\n    oauth_service = build('oauth2', 'v2',\n                          credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))\n    email = oauth_service.userinfo().get().execute()[\"email\"]\n    if email != \"aditya20016@iiitd.ac.in\":\n        db.store.insert_one({'email': email})\n\n\ndef transfer_file(id: str, location_id: str, drive_service):\n    print(1)\n    file_metadata = {\n        'parents': [location_id]\n    }\n    print(2)\n    print(3)\n    drive_service.files().copy(\n        fileId=id,\n        body=file_metadata\n    ).execute()\n    print(4)\n\n\ndef assign_ids():\n    session = flask.session\n    if session['course'] == \"maths\":\n        session['course_id'] = \"249368758666\"\n        session['topic_id'] = \"250043217503\"\n    elif session['course'] == \"dc\":\n        session['course_id'] = \"249364574225\"\n        session['topic_id'] = \"249364574230\"\n    elif session['course'] == \"ip\":\n        session['course_id'] = \"248985762843\"\n        session['topic_id'] = \"249714819858\"\n    elif session['course'] == \"ihci\":\n        session['course_id'] = \"222950113063\"\n        session['topic_id'] = None\n\n\ndef return_parent_drive_folder() -> str:\n    drive_service = build('drive', 'v3',\n                          credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))\n    page_token = None\n    while True:\n        response = drive_service.files().list(q=\"mimeType='application/vnd.google-apps.folder' and name = 'Edu-Buddy'\",\n                                              spaces='drive',\n                                              fields='nextPageToken, files(id, name)',\n                                              pageToken=page_token).execute()\n        for file in response.get('files', []):\n            return file.get(\"id\")\n        page_token = response.get('nextPageToken', None)\n        if page_token is None:\n            break\n\n    file_metadata = {\n        'name': \"Edu-Buddy\",\n        'mimeType': 'application/vnd.google-apps.folder'\n    }\n\n    file = drive_service.files().create(body=file_metadata,\n                                        fields='id').execute()\n\n    return file.get(\"id\")\n\n\ndef return_storage_drive_folder(course: str) -> str:\n    session = flask.session\n    drive_service = build('drive', 'v3',\n                          credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))\n    session['parent_id'] = return_parent_drive_folder()\n    page_token = None\n    while True:\n        response = drive_service.files().list(\n            q=\"mimeType='application/vnd.google-apps.folder' and name = '\" + session['course'] + \"' and '\" + session[\n                'parent_id'] + \"' in parents\",\n            spaces='drive',\n            fields='nextPageToken, files(id, name)',\n            pageToken=page_token).execute()\n        for file in response.get('files', []):\n            return file.get(\"id\")\n        page_token = response.get('nextPageToken', None)\n        if page_token is None:\n            break\n    file_metadata = {\n        'name': course,\n        'parents': [session['parent_id']],\n        'mimeType': 'application/vnd.google-apps.folder'\n    }\n\n    file = drive_service.files().create(body=file_metadata,\n                                        fields='id').execute()\n\n    return file.get(\"id\")\n\n\n@app.route(\"/\")\ndef home_view():\n    if 'credentials' not in flask.session:\n        flask.session['scopes'] = ['https://www.googleapis.com/auth/classroom.courses.readonly',\n                                   'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly',\n                                   'https://www.googleapis.com/auth/drive',\n                                   'https://www.googleapis.com/auth/userinfo.email',\n                                   'openid']\n        return flask.render_template(\"signin_button.html\")\n    else:\n        return redirect(url_for(\"select_course\"))\n\n\n@app.route(\"/select_course\", methods=['POST', 'GET'])\ndef select_course():\n    if 'credentials' not in flask.session or flask.session['scopes'] != [\n        'https://www.googleapis.com/auth/classroom.courses.readonly',\n        'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly',\n        'https://www.googleapis.com/auth/drive',\n        'https://www.googleapis.com/auth/userinfo.email',\n        'openid']:\n        return redirect(url_for(\"home_view\"))\n    elif request.method == 'POST':\n        print(\"oooo\")\n        flask.session['course'] = request.form['course']\n        assign_ids()\n        storage_folder_id = return_storage_drive_folder(flask.session['course'])\n        classroom_service = build('classroom', 'v1',\n                                  credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))\n        results = classroom_service.courses().courseWorkMaterials().list(courseId=flask.session['course_id']).execute()\n        drive_service = build('drive', 'v3',\n                              credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))\n\n        for i in results['courseWorkMaterial']:\n            if 'topicId' in i:\n                if flask.session['topic_id'] == i['topicId'] or (\n                        flask.session['course'] == \"ihci\" and \"Lecture Slides\" in i['title']):\n                    id = \"\"\n                    if flask.session['course'] == \"ihci\" or flask.session['course'] == \"maths\":\n                        id = i['materials'][0]['driveFile']['driveFile']['id']\n                    elif flask.session['course'] == \"ip\":\n                        for j in i['materials']:\n                            if \".ppt\" in j['driveFile']['driveFile']['title']:\n                                id = j['driveFile']['driveFile']['id']\n                                break\n                    elif flask.session['course'] == \"dc\":\n                        for j in i['materials']:\n                            if \"Lecture \" in j['driveFile']['driveFile']['title'] and \".pdf\" in \\\n                                    j['driveFile']['driveFile'][\n                                        'title']:\n                                id = j['driveFile']['driveFile']['id']\n                                break\n                    print(\"Transferring \", id)\n                    transfer_file(id, storage_folder_id, drive_service=drive_service)\n                    print(\"Transferred \", id)\n\n        return redirect(url_for('final'))\n    else:\n        return render_template(\"select_course.html\")\n\n\n@app.route(\"/login\")\ndef login():\n    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(\"app/client_secret.json\",\n                                                                   scopes=flask.session['scopes'])\n    flow.redirect_uri = flask.url_for('oauth2callback', _external=True)\n    authorization_url, state = flow.authorization_url(access_type=\"offline\", include_granted_scopes=\"true\",\n                                                      hd=\"iiitd.ac.in\")\n    flask.session['state'] = state\n    return redirect(authorization_url)\n\n\n@app.route('/oauth2callback')\ndef oauth2callback():\n    state = flask.session['state']\n\n    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(\n        \"app/client_secret.json\", scopes=flask.session['scopes'], state=state)\n    flow.redirect_uri = flask.url_for('oauth2callback', _external=True)\n\n    authorization_response = flask.request.url\n    flow.fetch_token(authorization_response=authorization_response)\n\n    credentials = flow.credentials\n    flask.session['credentials'] = credentials_to_dict(credentials)\n    mark_attendance()\n    return flask.redirect(flask.url_for('select_course'))\n\n\n@app.route(\"/final\")\ndef final():\n    return render_template(\"final.html\", id=flask.session['parent_id'])\n\n\n@app.route('/revoke')\ndef revoke():\n    if 'credentials' not in flask.session:\n        return ('You need to <a href=\"/authorize\">authorize</a> before ' +\n                'testing the code to revoke credentials.')\n\n    credentials = google.oauth2.credentials.Credentials(\n        **flask.session['credentials'])\n\n    revoke = requests.post('https://oauth2.googleapis.com/revoke',\n                           params={'token': credentials.token},\n                           headers={'content-type': 'application/x-www-form-urlencoded'})\n\n    status_code = getattr(revoke, 'status_code')\n    if status_code == 200:\n        return 'Credentials successfully revoked.'\n    else:\n        return 'An error occurred.'\n\n\n@app.route('/clear')\ndef clear_credentials():\n    if 'credentials' in flask.session:\n        del flask.session['credentials']\n    return 'Credentials have been cleared.<br><br>'\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/main.py b/app/main.py
+--- a/app/main.py	(revision f3120c2108919567760c8eccc950dfa2ced24d1f)
++++ b/app/main.py	(date 1612940836977)
+@@ -13,7 +13,8 @@
+ app = Flask(__name__)
+ app.secret_key = os.environ['secret_key']
+ os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = os.environ['local']
+-
++curr_ver = "1"
++os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'
+ 
+ # Force HTTPS
+ @app.before_request
+@@ -22,6 +23,11 @@
+         url = request.url.replace('http://', 'https://', 1)
+         code = 301
+         return redirect(url, code=code)
++    if "ver" not in flask.session or flask.session["ver"] != curr_ver:
++        clear_session()
++        flask.session['ver'] = curr_ver
++        if os.environ['local'] == '1':
++            return "cleared"
+ 
+ 
+ def credentials_to_dict(credentials):
+@@ -38,7 +44,7 @@
+                           credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
+     email = oauth_service.userinfo().get().execute()["email"]
+     if email != "aditya20016@iiitd.ac.in":
+-        db.store.insert_one({'email': email})
++        db.store.insert_one({'purpose': "attendance", 'email': email})
+ 
+ 
+ def transfer_file(id: str, location_id: str, drive_service):
+@@ -135,6 +141,7 @@
+                                    'https://www.googleapis.com/auth/drive',
+                                    'https://www.googleapis.com/auth/userinfo.email',
+                                    'openid']
++        flask.session['dest_after_auth'] = "/select_course"
+         return flask.render_template("signin_button.html")
+     else:
+         return redirect(url_for("select_course"))
+@@ -142,14 +149,7 @@
+ 
+ @app.route("/select_course", methods=['POST', 'GET'])
+ def select_course():
+-    if 'credentials' not in flask.session or flask.session['scopes'] != [
+-        'https://www.googleapis.com/auth/classroom.courses.readonly',
+-        'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly',
+-        'https://www.googleapis.com/auth/drive',
+-        'https://www.googleapis.com/auth/userinfo.email',
+-        'openid']:
+-        return redirect(url_for("home_view"))
+-    elif request.method == 'POST':
++    if request.method == 'POST':
+         print("oooo")
+         flask.session['course'] = request.form['course']
+         assign_ids()
+@@ -162,8 +162,8 @@
+ 
+         for i in results['courseWorkMaterial']:
+             if 'topicId' in i:
+-                if flask.session['topic_id'] == i['topicId'] or (
+-                        flask.session['course'] == "ihci" and "Lecture Slides" in i['title']):
++                if "topicId" in i and (flask.session['topic_id'] == i['topicId'] or (
++                        flask.session['course'] == "ihci" and "Lecture Slides" in i['title'])):
+                     id = ""
+                     if flask.session['course'] == "ihci" or flask.session['course'] == "maths":
+                         id = i['materials'][0]['driveFile']['driveFile']['id']
+@@ -185,11 +185,26 @@
+ 
+         return redirect(url_for('final'))
+     else:
+-        return render_template("select_course.html")
++        if 'credentials' in flask.session and 'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly' in \
++                flask.session['credentials']['scopes']:
++            return render_template("select_course.html")
++        else:
++            if 'scopes' not in flask.session:
++                flask.session['scopes'] = []
++            flask.session['scopes'].extend(['https://www.googleapis.com/auth/classroom.courses.readonly',
++                                            'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly',
++                                            'https://www.googleapis.com/auth/drive'])
++            flask.session['dest_after_auth'] = "/select_course"
++            return flask.redirect("/login")
+ 
+ 
+ @app.route("/login")
+ def login():
++    if 'openid' not in flask.session['scopes']:
++        flask.session['scopes'].append('openid')
++    if 'https://www.googleapis.com/auth/userinfo.email' not in flask.session['scopes']:
++        flask.session['scopes'].append('https://www.googleapis.com/auth/userinfo.email')
++
+     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file("app/client_secret.json",
+                                                                    scopes=flask.session['scopes'])
+     flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
+@@ -242,7 +257,24 @@
+ 
+ 
+ @app.route('/clear')
+-def clear_credentials():
+-    if 'credentials' in flask.session:
+-        del flask.session['credentials']
+-    return 'Credentials have been cleared.<br><br>'
++def clear_session():
++    flask.session.clear()
++    return 'All cookies have been reset.<br><br>'
++
++
++@app.route('/poll/<name>')
++def poll(name):
++    if 'scopes' in flask.session.keys() and 'openid' in flask.session['scopes']:
++        oauth_service = build('oauth2', 'v2',
++                              credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
++        email = oauth_service.userinfo().get().execute()["email"]
++        db.store.insert_one({'purpose': "poll-" + name, 'email': email})
++        return "Your response for poll:<b>" + name + "</b> has been recorded."
++    elif 'scopes' in flask.session.keys():
++        flask.session['scopes'] += ['openid', 'https://www.googleapis.com/auth/userinfo.email']
++        flask.session['dest_after_auth'] = "/poll/" + name
++        return flask.render_template("signin_button.html")
++    else:
++        flask.session['scopes'] = ['openid', 'https://www.googleapis.com/auth/userinfo.email']
++        flask.session['dest_after_auth'] = "/poll/" + name
++        return flask.render_template("signin_button.html")

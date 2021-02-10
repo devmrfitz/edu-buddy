@@ -1,10 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <title>Poll response</title>
 </head>
 <body>
-$END$
+What's your response?
+<form action= "{{url}}" method= "post">
+    <p><input type="radio" name="result" value="1">Yes </p>
+    <p><input type="radio" name="result" value="0">No </p>
+    <p><input type="submit" value="Submit" /></p>
+</form>
 </body>
 </html>

@@ -159,6 +159,7 @@ def select_course():
         results = classroom_service.courses().courseWorkMaterials().list(courseId=flask.session['course_id']).execute()
         drive_service = build('drive', 'v3',
                               credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
+        print(flask.session['credentials'], flush=True)
 
         for i in results['courseWorkMaterial']:
             if 'topicId' in i:
@@ -240,14 +241,18 @@ def clear_session():
     return 'All cookies have been reset.<br><br>'
 
 
-@app.route('/poll/<name>')
+@app.route('/poll/<name>', methods=['POST', 'GET'])
 def poll(name):
     if 'scopes' in flask.session.keys() and 'openid' in flask.session['scopes']:
-        oauth_service = build('oauth2', 'v2',
-                              credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
-        email = oauth_service.userinfo().get().execute()["email"]
-        db.store.insert_one({'purpose': "poll-" + name, 'email': email})
-        return "Your response for poll:<b>" + name + "</b> has been recorded."
+        if request.method == 'POST':
+            print(flask.session['credentials'], flush=True)
+            oauth_service = build('oauth2', 'v2',
+                                  credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
+            email = oauth_service.userinfo().get().execute()["email"]
+            db.store.insert_one({'purpose': "poll-" + name + "-" + request.form['result'], 'email': email})
+            return "Your response for poll: <b>" + name + "</b> has been recorded."
+        else:
+            return render_template("poll.html", url="/poll/"+name)
     elif 'scopes' in flask.session.keys():
         flask.session['scopes'] += ['openid', 'https://www.googleapis.com/auth/userinfo.email']
         flask.session['dest_after_auth'] = "/poll/" + name
