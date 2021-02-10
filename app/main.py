@@ -131,6 +131,7 @@ def return_storage_drive_folder(course: str) -> str:
 def home_view():
     print("Homecall", flush=True)
     if 'credentials' not in flask.session:
+        print(1, flush=1)
         flask.session['scopes'] = ['https://www.googleapis.com/auth/classroom.courses.readonly',
                                    'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly',
                                    'https://www.googleapis.com/auth/drive',
