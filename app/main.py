@@ -240,7 +240,7 @@ def clear_session():
     return 'All cookies have been reset.<br><br>'
 
 
-@app.route('/poll')
+@app.route('/poll/marks')
 def poll():
     name = "marks"
     if 'scopes' in flask.session.keys() and 'openid' in flask.session['scopes']:
