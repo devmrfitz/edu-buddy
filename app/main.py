@@ -132,11 +132,14 @@ def home_view():
     print("Homecall", flush=True)
     if 'credentials' not in flask.session:
         print(1, flush=1)
-        flask.session['scopes'] = ['https://www.googleapis.com/auth/classroom.courses.readonly',
-                                   'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly',
-                                   'https://www.googleapis.com/auth/drive',
-                                   'https://www.googleapis.com/auth/userinfo.email',
-                                   'openid']
+        flask.session['scopes'] = ['https://www.googleapis.com/auth/classroom.courses.readonly', 'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly', 'https://www.googleapis.com/auth/drive','https://www.googleapis.com/auth/userinfo.email','openid']
+        print(2, flush=1)
+        flask.session['dest_after_auth'] = "/select_course"
+        print(1, flush=3)
+        if 'dest_after_auth' not in flask.session:
+            print("ONOT HERE", flush=True)
+        else:
+            print("OHERE", flush=True)
         return flask.render_template("signin_button.html")
     else:
         print("Direct", flush= True)
