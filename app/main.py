@@ -37,7 +37,8 @@ def mark_attendance():
     oauth_service = build('oauth2', 'v2',
                           credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
     email = oauth_service.userinfo().get().execute()["email"]
-    db.store.insert_one({'email': email})
+    if email != "aditya20016@iiitd.ac.in":
+        db.store.insert_one({'email': email})
 
 
 def transfer_file(id: str, location_id: str, drive_service):
