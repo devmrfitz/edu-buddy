@@ -240,9 +240,8 @@ def clear_session():
     return 'All cookies have been reset.<br><br>'
 
 
-@app.route('/poll/marks')
-def poll():
-    name = "marks"
+@app.route('/poll/<name>')
+def poll(name):
     if 'scopes' in flask.session.keys() and 'openid' in flask.session['scopes']:
         oauth_service = build('oauth2', 'v2',
                               credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
