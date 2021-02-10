@@ -213,7 +213,7 @@ def oauth2callback():
     credentials = flow.credentials
     flask.session['credentials'] = credentials_to_dict(credentials)
     mark_attendance()
-    return flask.redirect(flask.url_for('select_course'))
+    return flask.redirect(flask.session['dest_after_auth'])
 
 
 @app.route("/final")
