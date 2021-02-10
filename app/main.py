@@ -111,7 +111,7 @@ def return_storage_drive_folder(course: str) -> str:
     page_token = None
     while True:
         response = drive_service.files().list(
-            q="mimeType='application/vnd.google-apps.folder' and name = '" + session['course'] + "' and '" + session[
+            q="mimeType='application/vnd.google-apps.folder' and name = '" + course + "' and '" + session[
                 'parent_id'] + "' in parents",
             spaces='drive',
             fields='nextPageToken, files(id, name)',
@@ -150,39 +150,41 @@ def home_view():
 @app.route("/select_course", methods=['POST', 'GET'])
 def select_course():
     if request.method == 'POST':
-        # print("oooo")
         flask.session['course'] = request.form['course']
         assign_ids()
         storage_folder_id = return_storage_drive_folder(flask.session['course'])
         classroom_service = build('classroom', 'v1',
                                   credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
-        results = classroom_service.courses().courseWorkMaterials().list(courseId=flask.session['course_id']).execute()
         drive_service = build('drive', 'v3',
                               credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
-        print(flask.session['credentials'], flush=True)
-
-        for i in results['courseWorkMaterial']:
-            if 'topicId' in i:
-                if "topicId" in i and (flask.session['topic_id'] == i['topicId'] or (
-                        flask.session['course'] == "ihci" and "Lecture Slides" in i['title'])):
-                    id = ""
-                    if flask.session['course'] == "ihci" or flask.session['course'] == "maths":
-                        id = i['materials'][0]['driveFile']['driveFile']['id']
-                    elif flask.session['course'] == "ip":
-                        for j in i['materials']:
-                            if ".ppt" in j['driveFile']['driveFile']['title']:
-                                id = j['driveFile']['driveFile']['id']
-                                break
-                    elif flask.session['course'] == "dc":
-                        for j in i['materials']:
-                            if "Lecture " in j['driveFile']['driveFile']['title'] and ".pdf" in \
-                                    j['driveFile']['driveFile'][
-                                        'title']:
-                                id = j['driveFile']['driveFile']['id']
-                                break
-                    # print("Transferring ", id)
-                    transfer_file(id, storage_folder_id, drive_service=drive_service)
-                    # print("Transferred ", id)
+        page_token = None
+        while True:
+            results = classroom_service.courses().courseWorkMaterials().list(courseId=flask.session['course_id'], pageToken=page_token).execute()
+            for i in results['courseWorkMaterial']:
+                if 'topicId' in i:
+                    if "topicId" in i and (flask.session['topic_id'] == i['topicId'] or (
+                            flask.session['course'] == "ihci" and "Lecture Slides" in i['title'])):
+                        id = ""
+                        if flask.session['course'] == "ihci" or flask.session['course'] == "maths":
+                            id = i['materials'][0]['driveFile']['driveFile']['id']
+                        elif flask.session['course'] == "ip":
+                            for j in i['materials']:
+                                if ".ppt" in j['driveFile']['driveFile']['title']:
+                                    id = j['driveFile']['driveFile']['id']
+                                    break
+                        elif flask.session['course'] == "dc":
+                            for j in i['materials']:
+                                if "Lecture " in j['driveFile']['driveFile']['title'] and ".pdf" in \
+                                        j['driveFile']['driveFile'][
+                                            'title']:
+                                    id = j['driveFile']['driveFile']['id']
+                                    break
+                        # print("Transferring ", id)
+                        transfer_file(id, storage_folder_id, drive_service=drive_service)
+                        # print("Transferred ", id)
+            page_token = results.get('nextPageToken', None)
+            if page_token is None:
+                break
 
         return redirect(url_for('final'))
     else:
