@@ -13,7 +13,8 @@ db = client['edubuddy']
 app = Flask(__name__)
 app.secret_key = os.environ['secret_key']
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = os.environ['local']
-
+curr_ver = "1"
+os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'
 
 # Force HTTPS
 @app.before_request
@@ -22,6 +23,11 @@ def before_request():
         url = request.url.replace('http://', 'https://', 1)
         code = 301
         return redirect(url, code=code)
+    if "ver" not in flask.session or flask.session["ver"] != curr_ver:
+        clear_session()
+        flask.session['ver'] = curr_ver
+        if os.environ['local'] == '1':
+            return "cleared"
 
 
 def credentials_to_dict(credentials):
@@ -38,21 +44,21 @@ def mark_attendance():
                           credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
     email = oauth_service.userinfo().get().execute()["email"]
     if email != "aditya20016@iiitd.ac.in":
-        db.store.insert_one({'email': email})
+        db.store.insert_one({'purpose': "attendance", 'email': email})
 
 
 def transfer_file(id: str, location_id: str, drive_service):
-    print(1)
+    # print(1)
     file_metadata = {
         'parents': [location_id]
     }
-    print(2)
-    print(3)
+    # print(2)
+    # print(3)
     drive_service.files().copy(
         fileId=id,
         body=file_metadata
     ).execute()
-    print(4)
+    # print(4)
 
 
 def assign_ids():
@@ -129,34 +135,22 @@ def return_storage_drive_folder(course: str) -> str:
 
 @app.route("/")
 def home_view():
-    print("Homecall", flush=True)
+    # print("Homecall", flush=True)
     if 'credentials' not in flask.session:
-        print(1, flush=1)
+        # print(1, flush=1)
         flask.session['scopes'] = ['https://www.googleapis.com/auth/classroom.courses.readonly', 'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly', 'https://www.googleapis.com/auth/drive','https://www.googleapis.com/auth/userinfo.email','openid']
-        print(2, flush=1)
+        # print(2, flush=1)
         flask.session['dest_after_auth'] = "/select_course"
-        print(1, flush=3)
-        if 'dest_after_auth' not in flask.session:
-            print("ONOT HERE", flush=True)
-        else:
-            print("OHERE", flush=True)
         return flask.render_template("signin_button.html")
     else:
-        print("Direct", flush= True)
+        # print("Direct", flush= True)
         return redirect(url_for("select_course"))
 
 
 @app.route("/select_course", methods=['POST', 'GET'])
 def select_course():
-    if 'credentials' not in flask.session or flask.session['scopes'] != [
-        'https://www.googleapis.com/auth/classroom.courses.readonly',
-        'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly',
-        'https://www.googleapis.com/auth/drive',
-        'https://www.googleapis.com/auth/userinfo.email',
-        'openid']:
-        return redirect(url_for("home_view"))
-    elif request.method == 'POST':
-        print("oooo")
+    if request.method == 'POST':
+        # print("oooo")
         flask.session['course'] = request.form['course']
         assign_ids()
         storage_folder_id = return_storage_drive_folder(flask.session['course'])
@@ -168,8 +162,8 @@ def select_course():
 
         for i in results['courseWorkMaterial']:
             if 'topicId' in i:
-                if flask.session['topic_id'] == i['topicId'] or (
-                        flask.session['course'] == "ihci" and "Lecture Slides" in i['title']):
+                if "topicId" in i and (flask.session['topic_id'] == i['topicId'] or (
+                        flask.session['course'] == "ihci" and "Lecture Slides" in i['title'])):
                     id = ""
                     if flask.session['course'] == "ihci" or flask.session['course'] == "maths":
                         id = i['materials'][0]['driveFile']['driveFile']['id']
@@ -185,17 +179,29 @@ def select_course():
                                         'title']:
                                 id = j['driveFile']['driveFile']['id']
                                 break
-                    print("Transferring ", id)
+                    # print("Transferring ", id)
                     transfer_file(id, storage_folder_id, drive_service=drive_service)
-                    print("Transferred ", id)
+                    # print("Transferred ", id)
 
         return redirect(url_for('final'))
     else:
-        return render_template("select_course.html")
+        if 'credentials' in flask.session and 'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly' in flask.session['credentials']['scopes']:
+            return render_template("select_course.html")
+        else:
+            if 'scopes' not in flask.session:
+                flask.session['scopes'] = []
+            flask.session['scopes'].extend(['https://www.googleapis.com/auth/classroom.courses.readonly', 'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly', 'https://www.googleapis.com/auth/drive'])
+            flask.session['dest_after_auth'] = "/select_course"
+            return flask.redirect("/login")
 
 
 @app.route("/login")
 def login():
+    if 'openid' not in flask.session['scopes']:
+        flask.session['scopes'].append('openid')
+    if 'https://www.googleapis.com/auth/userinfo.email' not in flask.session['scopes']:
+        flask.session['scopes'].append('https://www.googleapis.com/auth/userinfo.email')
+
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file("app/client_secret.json",
                                                                    scopes=flask.session['scopes'])
     flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
@@ -207,10 +213,6 @@ def login():
 
 @app.route('/oauth2callback')
 def oauth2callback():
-    if 'dest_after_auth' not in flask.session:
-        print("1NOT HERE", flush=True)
-    else:
-        print("1HERE", flush=True)
     state = flask.session['state']
 
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
@@ -223,10 +225,7 @@ def oauth2callback():
     credentials = flow.credentials
     flask.session['credentials'] = credentials_to_dict(credentials)
     mark_attendance()
-    if 'dest_after_auth' not in flask.session:
-        print("NOT HERE", flush=True)
-    else:
-        print("HERE", flush=True)
+
     return flask.redirect(flask.session['dest_after_auth'])
 
 
@@ -236,7 +235,25 @@ def final():
 
 
 @app.route('/clear')
-def clear_credentials():
-    if 'credentials' in flask.session:
-        del flask.session['credentials']
-    return 'Credentials have been cleared.<br><br>'
+def clear_session():
+    flask.session.clear()
+    return 'All cookies have been reset.<br><br>'
+
+
+@app.route('/poll')
+def poll():
+    name = "marks"
+    if 'scopes' in flask.session.keys() and 'openid' in flask.session['scopes']:
+        oauth_service = build('oauth2', 'v2',
+                              credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
+        email = oauth_service.userinfo().get().execute()["email"]
+        db.store.insert_one({'purpose': "poll-" + name, 'email': email})
+        return "Your response for poll:<b>" + name + "</b> has been recorded."
+    elif 'scopes' in flask.session.keys():
+        flask.session['scopes'] += ['openid', 'https://www.googleapis.com/auth/userinfo.email']
+        flask.session['dest_after_auth'] = "/poll/" + name
+        return flask.render_template("signin_button.html")
+    else:
+        flask.session['scopes'] = ['openid', 'https://www.googleapis.com/auth/userinfo.email']
+        flask.session['dest_after_auth'] = "/poll/" + name
+        return flask.render_template("signin_button.html")
