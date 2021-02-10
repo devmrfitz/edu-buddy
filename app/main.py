@@ -129,6 +129,7 @@ def return_storage_drive_folder(course: str) -> str:
 
 @app.route("/")
 def home_view():
+    print("Homecall", flush=True)
     if 'credentials' not in flask.session:
         flask.session['scopes'] = ['https://www.googleapis.com/auth/classroom.courses.readonly',
                                    'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly',
@@ -137,6 +138,7 @@ def home_view():
                                    'openid']
         return flask.render_template("signin_button.html")
     else:
+        print("Direct", flush= True)
         return redirect(url_for("select_course"))
 
 
