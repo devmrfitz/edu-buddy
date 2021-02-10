@@ -227,7 +227,8 @@ def oauth2callback():
 
     credentials = flow.credentials
     flask.session['credentials'] = credentials_to_dict(credentials)
-    mark_attendance()
+    if 'poll' not in flask.session['dest_after_auth']:
+        mark_attendance()
 
     return flask.redirect(flask.session['dest_after_auth'])
 
