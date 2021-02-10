@@ -14,6 +14,29 @@ app = Flask(__name__)
 app.secret_key = os.environ['secret_key']
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = os.environ['local']
 
+# Force HTTPS
+@app.before_request
+def before_request():
+    if os.environ['local'] == "0" and request.url.startswith('http://'):
+        url = request.url.replace('http://', 'https://', 1)
+        code = 301
+        return redirect(url, code=code)
+
+
+def credentials_to_dict(credentials):
+    return {'token': credentials.token,
+            'refresh_token': credentials.refresh_token,
+            'token_uri': credentials.token_uri,
+            'client_id': credentials.client_id,
+            'client_secret': credentials.client_secret,
+            'scopes': credentials.scopes}
+
+
+def mark_attendance():
+    oauth_service = build('oauth2', 'v2', credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
+    email = oauth_service.userinfo().get().execute()["email"]
+    db.store.insert_one({'email': email})
+
 
 def transfer_file(id: str, location_id: str):
     file_metadata = {
@@ -102,6 +125,11 @@ def return_storage_drive_folder(course: str) -> str:
 @app.route("/")
 def home_view():
     if 'credentials' not in flask.session:
+        flask.session['scopes'] = ['https://www.googleapis.com/auth/classroom.courses.readonly',
+              'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly',
+              'https://www.googleapis.com/auth/drive',
+              'https://www.googleapis.com/auth/userinfo.email',
+              'openid']
         return flask.render_template("signin_button.html")
     else:
         return redirect(url_for("select_course"))
@@ -109,8 +137,12 @@ def home_view():
 
 @app.route("/select_course", methods=['POST', 'GET'])
 def select_course():
-    if 'credentials' not in flask.session:
-        return flask.render_template("signin_button.html")
+    if 'credentials' not in flask.session or flask.session['scopes'] != ['https://www.googleapis.com/auth/classroom.courses.readonly',
+              'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly',
+              'https://www.googleapis.com/auth/drive',
+              'https://www.googleapis.com/auth/userinfo.email',
+              'openid']:
+        return redirect(url_for("home_view"))
     elif request.method == 'POST':
         flask.session['course'] = request.form['course']
         assign_ids()
@@ -144,32 +176,19 @@ def select_course():
 
 @app.route("/login")
 def login():
-    SCOPES = ['https://www.googleapis.com/auth/classroom.courses.readonly',
-              'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly',
-              'https://www.googleapis.com/auth/drive',
-              'https://www.googleapis.com/auth/userinfo.email',
-              'openid']
-
-    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file("app/client_secret.json", scopes=SCOPES)
+    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file("app/client_secret.json", scopes=flask.session['scopes'])
     flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
-    authorization_url, state = flow.authorization_url(access_type="offline", include_granted_scopes="true")
+    authorization_url, state = flow.authorization_url(access_type="offline", include_granted_scopes="true", hd="iiitd.ac.in")
     flask.session['state'] = state
     return redirect(authorization_url)
 
 
 @app.route('/oauth2callback')
 def oauth2callback():
-    SCOPES = ['https://www.googleapis.com/auth/classroom.courses.readonly',
-              'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly',
-              'https://www.googleapis.com/auth/drive',
-              'https://www.googleapis.com/auth/userinfo.email',
-              'openid']
-    # Specify the state when creating the flow in the callback so that it can
-    # verified in the authorization server response.
     state = flask.session['state']
 
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-        "app/client_secret.json", scopes=SCOPES, state=state)
+        "app/client_secret.json", scopes=flask.session['scopes'], state=state)
     flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
 
     authorization_response = flask.request.url
@@ -179,21 +198,6 @@ def oauth2callback():
     flask.session['credentials'] = credentials_to_dict(credentials)
     mark_attendance()
     return flask.redirect(flask.url_for('select_course'))
-
-
-def credentials_to_dict(credentials):
-    return {'token': credentials.token,
-            'refresh_token': credentials.refresh_token,
-            'token_uri': credentials.token_uri,
-            'client_id': credentials.client_id,
-            'client_secret': credentials.client_secret,
-            'scopes': credentials.scopes}
-
-
-def mark_attendance():
-    oauth_service = build('oauth2', 'v2', credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
-    email = oauth_service.userinfo().get().execute()["email"]
-    db.store.insert_one({'email': email})
 
 
 @app.route("/final")
@@ -227,11 +231,3 @@ def clear_credentials():
         del flask.session['credentials']
     return 'Credentials have been cleared.<br><br>'
 
-
-# Force HTTPS
-@app.before_request
-def before_request():
-    if os.environ['local'] == "0" and request.url.startswith('http://'):
-        url = request.url.replace('http://', 'https://', 1)
-        code = 301
-        return redirect(url, code=code)
