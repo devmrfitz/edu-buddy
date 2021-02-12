@@ -77,9 +77,7 @@ def assign_ids():
         session['topic_id'] = None
 
 
-def return_parent_drive_folder() -> str:
-    drive_service = build('drive', 'v3',
-                          credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
+def return_parent_drive_folder(drive_service) -> str:
     page_token = None
     while True:
         response = drive_service.files().list(q="mimeType='application/vnd.google-apps.folder' and name = 'Edu-Buddy'",
@@ -103,11 +101,9 @@ def return_parent_drive_folder() -> str:
     return file.get("id")
 
 
-def return_storage_drive_folder(course: str) -> str:
+def return_storage_drive_folder(course: str, drive_service) -> str:
     session = flask.session
-    drive_service = build('drive', 'v3',
-                          credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
-    session['parent_id'] = return_parent_drive_folder()
+    session['parent_id'] = return_parent_drive_folder(drive_service)
     page_token = None
     while True:
         response = drive_service.files().list(
@@ -117,7 +113,8 @@ def return_storage_drive_folder(course: str) -> str:
             fields='nextPageToken, files(id, name)',
             pageToken=page_token).execute()
         for file in response.get('files', []):
-            return file.get("id")
+            drive_service.files().delete(fileId=file.get("id")).execute()
+            print("Deleted", flush=True)
         page_token = response.get('nextPageToken', None)
         if page_token is None:
             break
@@ -147,16 +144,36 @@ def home_view():
         return redirect(url_for("select_course"))
 
 
+def empty_folder(storage_folder_id, drive_service):
+    page_token = None
+    while True:
+        response = drive_service.files().list(
+            q="'" + storage_folder_id + "' in parents",
+            spaces='drive',
+            fields='nextPageToken, files(id, name)',
+            pageToken=page_token).execute()
+        for file in response.get('files', []):
+            print("Deleting ", file.get("name"), flush=True)
+            drive_service.files().delete(fileId=file.get("id")).execute()
+        page_token = response.get('nextPageToken', None)
+        if page_token is None:
+            print("Exiting deletion", flush=True)
+            break
+
+
 @app.route("/select_course", methods=['POST', 'GET'])
 def select_course():
     if request.method == 'POST':
         flask.session['course'] = request.form['course']
         assign_ids()
-        storage_folder_id = return_storage_drive_folder(flask.session['course'])
+
         classroom_service = build('classroom', 'v1',
                                   credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
         drive_service = build('drive', 'v3',
                               credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
+
+        storage_folder_id = return_storage_drive_folder(flask.session['course'], drive_service)
+        # empty_folder(storage_folder_id, drive_service)
         page_token = None
         while True:
             results = classroom_service.courses().courseWorkMaterials().list(courseId=flask.session['course_id'], pageToken=page_token).execute()
@@ -181,11 +198,12 @@ def select_course():
                                     break
                         # print("Transferring ", id)
                         transfer_file(id, storage_folder_id, drive_service=drive_service)
-                        # print("Transferred ", id)
+                        print("Transferred ", id, flush=True)
             page_token = results.get('nextPageToken', None)
             if page_token is None:
+                print("Exiting transfer", flush=True)
                 break
-
+        print("Returning redirect", flush=True)
         return redirect(url_for('final'))
     else:
         if 'credentials' in flask.session and 'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly' in flask.session['credentials']['scopes']:
