@@ -131,16 +131,12 @@ def return_storage_drive_folder(course: str, drive_service) -> str:
 
 @app.route("/")
 def home_view():
-    # print("Homecall", flush=True)
     if 'credentials' not in flask.session:
-        # print(1, flush=1)
         flask.session['scopes'] = ['https://www.googleapis.com/auth/classroom.courses.readonly', 'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly', 'https://www.googleapis.com/auth/drive','https://www.googleapis.com/auth/userinfo.email','openid']
-        # print(2, flush=1)
-        flask.session['dest_after_auth'] = "/select_course"
+        flask.session['dest_after_auth'] = "/front"
         return flask.render_template("signin_button.html")
     else:
-        # print("Direct", flush= True)
-        return redirect(url_for("select_course"))
+        return redirect("/front")
 
 
 @app.route("/select_course", methods=['POST', 'GET'])
@@ -283,5 +279,10 @@ def search():
         # return "Found occurence matching query around "+str(minutes)+" minutes and "+str(seconds)+" seconds."
     else:
         return render_template("main_page.html")
+
+
+@app.route("/front")
+def front():
+    return render_template("front.html")
 
 

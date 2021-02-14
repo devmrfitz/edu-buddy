@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>EDUBUDDY</title>
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+  </head>
+  <body id="bg">
+
+    <!-- <div class="container">
+    <div class="forms">
+<p> Choose your subject: </p>
+<form action= "/select_course" method= "post">
+    <p  class="box"><input type="radio" name="course" value="maths">Maths </p>
+    <p class="box"><input type="radio" name="course" value="dc">DC </p>
+    <p class="box"><input type="radio" name="course" value="dc">DC </p>
+    <p class="box"><input type="radio" name="course" value="ip">IP </p>
+    <p class="box"><input type="radio" name="course" value="ihci">IHCI </p>
+    <p><input type="submit" value="Submit" id="subutton"/></p>
+    </form>
+</div>
+</div> -->
+<div class="container">
+  <div class="row align-items-start">
+    <div class="col">
+     <div class="forms">
+     <h4 class="batch">Download Notes </h4>
+<p class="center"> Choose your subject: </p>
+<form action= "/select_course" method= "post">
+    <p  class="box"><input type="radio" name="course" value="maths">Maths </p>
+    <p class="box"><input type="radio" name="course" value="dc">DC </p>
+    <p class="box"><input type="radio" name="course" value="dc">DC </p>
+    <p class="box"><input type="radio" name="course" value="ip">IP </p>
+    <p class="box"><input type="radio" name="course" value="ihci">IHCI </p>
+    <p><input type="submit" value="Submit" id="subutton"/></p>
+    </form>
+</div>
+    </div>
+    <div class="col dabba"> <br><br><br>
+    <h3 class="bc">Transcript Search</h3>
+      <div class="wrapper">
+      <form class="example" action="/search" method="post">
+        <input type="text" placeholder="Search.." name="search" id="len" />
+        <button type="submit"><i class="fa fa-search"></i></button>
+      </form>
+    </div>
+    </div>
+  </div>
+  </div>
+<!--  <div class="container" id="over">-->
+<!--  <div class="row align-items-start">-->
+<!--    <div class="col">-->
+<!--    <h3 class="batch">View Grades</h3><br>-->
+<!--    <h6>1. Mathematics:</h6><br>-->
+<!--    <h6>2. English:</h6><br>-->
+<!--    <h6>3. Introduction to Programming:</h6><br>-->
+<!--    <h6>4. Digital Circuits:</h6><br>-->
+<!--    <h6>5. Human Computer Interaction:</h6>-->
+
+<!--    </div>-->
+<!--    </div>-->
+<!--  </div>-->
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      #over{
+        width:50%;
+        float:left;
+        padding-left:8.8vw;
+      }
+      .batch{
+        text-align:center;
+      }
+      .bc{
+        padding-bottom:2vh;
+      }
+      #len{
+        width:75%;
+      }
+      .center{
+        text-align:center;
+      }
+          .forms{
+        padding: 25px;
+    }
+      .container {
+       margin-top : 3vh;
+  width: 100vw;
+
+}
+.col{
+  border: 4px solid white;
+  width:40%;
+  padding:5vh;
+  height:67vh;
+}
+      .cent {
+          margin-top:8%;
+
+      }
+      #bg{
+          background-color: rgba(0, 0, 0, 0.788);
+          color:white;
+        }
+      .wrapper{
+          width:100%;
+      }
+      form.example input[type="text"] {
+        padding: 10px;
+        font-size: 17px;
+        border: 1px solid grey;
+        float: left;
+        width: 35%;
+        background: #f1f1f1;
+      }
+
+      form.example button {
+        float: left;
+        width: 10%;
+        padding: 10px;
+        background: #2196f3;
+        color: white;
+        font-size: 17px;
+        border: 1px solid grey;
+        border-left: none;
+        cursor: pointer;
+      }
+
+      form.example button:hover {
+        background: #0b7dda;
+      }
+
+      form.example::after {
+        content: "";
+        clear: both;
+        display: table;
+      }
+    </style>
+  </body>
+</html>
