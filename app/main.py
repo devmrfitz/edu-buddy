@@ -279,10 +279,10 @@ def search():
             return render_template("front.html", text = "Query not found.")
         minutes = int(time/60)
         seconds = time-minutes*60
-        return render_template("page_post_vid.html", id=id, time=time)
+        return render_template("page_post_vid.html", id=id, time=time, default=query)
         # return "Found occurence matching query around "+str(minutes)+" minutes and "+str(seconds)+" seconds."
     else:
-        return render_template("main_page.html")
+        return render_template("page_post_vid.html", default="")
 
 
 @app.route("/front")
