@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+      <script type="text/javascript">
+   function myFunction(){
+    window.scrollTo(0,document.body.scrollHeight);
+   }
+  </script>
     <meta charset="UTF-8" />
     <title>EDUBUDDY</title>
     <link
@@ -14,7 +19,7 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
     />
   </head>
-  <body id="bg">
+  <body id="bg" onload="myFunction();">
     <div class="wrapper">
       <form class="example" action="/search" method="post">
         <input type="text" placeholder="Search.." name="search" />
@@ -23,7 +28,11 @@
     </div>
     {% block content %}
     {% endblock content %}
+
     <style>
+    html {
+  scroll-behavior: smooth;
+}
       * {
         box-sizing: border-box;
       }

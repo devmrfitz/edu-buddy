@@ -1,4 +1,15 @@
 {% extends "main_page.html" %}
     {% block content %}
 
-<iframe src="https://drive.google.com/file/d/{{id}}/preview?t={{time}}" width="640" height="480"></iframe>{% endblock content %}
+<iframe id="testr" src="https://drive.google.com/file/d/{{id}}/preview?t={{time}}" width="100%" height="100%"></iframe>
+<style>
+#testr {
+    position:absolute;
+    width:100%;
+    height:100%;
+}
+
+</style>
+
+
+    {% endblock content%}
