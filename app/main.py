@@ -144,23 +144,6 @@ def home_view():
         return redirect(url_for("select_course"))
 
 
-def empty_folder(storage_folder_id, drive_service):
-    page_token = None
-    while True:
-        response = drive_service.files().list(
-            q="'" + storage_folder_id + "' in parents",
-            spaces='drive',
-            fields='nextPageToken, files(id, name)',
-            pageToken=page_token).execute()
-        for file in response.get('files', []):
-            print("Deleting ", file.get("name"), flush=True)
-            drive_service.files().delete(fileId=file.get("id")).execute()
-        page_token = response.get('nextPageToken', None)
-        if page_token is None:
-            print("Exiting deletion", flush=True)
-            break
-
-
 @app.route("/select_course", methods=['POST', 'GET'])
 def select_course():
     if request.method == 'POST':
