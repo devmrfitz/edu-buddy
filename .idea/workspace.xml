@@ -2,7 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="1f561939-2460-4745-9793-5af1672dbe94" name="Default Changelist" comment="temp">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/templates/front.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/front.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/templates/page_post_vid.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/page_post_vid.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/transcript_storage.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/transcript_storage.py" afterDir="false" />
     </list>
     <list id="42b4e50c-a24b-4dbc-a4a9-51b8814b1a51" name="clipboardPatchFile" comment="" />
     <option name="SHOW_DIALOG" value="false" />
@@ -121,6 +125,7 @@
     <MESSAGE value="Cleans folder before copying" />
     <MESSAGE value="temp" />
     <MESSAGE value="major" />
-    <option name="LAST_COMMIT_MESSAGE" value="major" />
+    <MESSAGE value="removed div" />
+    <option name="LAST_COMMIT_MESSAGE" value="removed div" />
   </component>
 </project>
