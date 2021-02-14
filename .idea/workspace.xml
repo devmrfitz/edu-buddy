@@ -2,11 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="1f561939-2460-4745-9793-5af1672dbe94" name="Default Changelist" comment="temp">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/templates/final.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/final.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/templates/poll.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/poll.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/templates/select_course.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/select_course.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/templates/signin_button.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/signin_button.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pipfile.lock" beforeDir="false" />
     </list>
     <list id="42b4e50c-a24b-4dbc-a4a9-51b8814b1a51" name="clipboardPatchFile" comment="" />
     <option name="SHOW_DIALOG" value="false" />
