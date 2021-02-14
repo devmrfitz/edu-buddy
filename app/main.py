@@ -265,6 +265,8 @@ def poll(name):
 def find_query(query):
     posts = db.transcript
     result = db.transcript.find_one({"$text": {"$search": query}})
+    if result is None:
+        return None, None
     return result['vid_id'], int(result['start_time'])
 
 
@@ -273,6 +275,8 @@ def search():
     if request.method == 'POST':
         query = request.form['search']
         id, time = find_query(query)
+        if id is None:
+            return render_template("front.html", text = "Query not found.")
         minutes = int(time/60)
         seconds = time-minutes*60
         return render_template("page_post_vid.html", id=id, time=time)
@@ -283,6 +287,6 @@ def search():
 
 @app.route("/front")
 def front():
-    return render_template("front.html")
+    return render_template("front.html", text = "")
 
 
