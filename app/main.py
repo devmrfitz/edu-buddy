@@ -7,7 +7,6 @@ import requests
 from pymongo import MongoClient
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
-
 client = MongoClient(os.environ['MONGODB_URI'])
 db = client['edubuddy']
 app = Flask(__name__)
@@ -265,3 +264,24 @@ def poll(name):
         flask.session['scopes'] = ['openid', 'https://www.googleapis.com/auth/userinfo.email']
         flask.session['dest_after_auth'] = "/poll/" + name
         return flask.render_template("signin_button.html")
+
+
+def find_query(query):
+    posts = db.transcript
+    result = db.transcript.find_one({"$text": {"$search": query}})
+    return result['vid_id'], int(result['start_time'])
+
+
+@app.route('/search', methods=['POST', 'GET'])
+def search():
+    if request.method == 'POST':
+        query = request.form['search']
+        id, time = find_query(query)
+        minutes = int(time/60)
+        seconds = time-minutes*60
+        return render_template("page_post_vid.html", id=id, time=time)
+        # return "Found occurence matching query around "+str(minutes)+" minutes and "+str(seconds)+" seconds."
+    else:
+        return render_template("main_page.html")
+
+
