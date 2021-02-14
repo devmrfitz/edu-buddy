@@ -368,6 +368,7 @@ def clean(text):
 
     return text
 
+
 def sentences(text):
     text = re.split('[!.?]', text)
     clean_sent = []
@@ -391,6 +392,7 @@ def stemmer(filter_sentence):
     sentence.strip()
     return sentence
 
+
 def execute(text):
     nlp = spacy.load('en_core_web_sm')
     sentence = stop_words((clean(text)))
@@ -411,6 +413,8 @@ def execute(text):
     else:
         line = "Sorry, I didn't understand. Rephrase and ask again"
     return line
+
+
 def searching(mylist):
     insights = mylist
     #insights = ["tell","cricket", "stadium"]
