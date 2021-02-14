@@ -38,7 +38,6 @@ pymongo = "*"
 dnspython = "*"
 speechrecognition = "*"
 wit = "*"
-recorder = "*"
 pydub = "*"
 
 [dev-packages]
