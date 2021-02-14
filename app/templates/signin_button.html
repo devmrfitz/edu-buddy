@@ -1,26 +1,71 @@
-<html>
-<head>
-    <title> Login </title>
-  <meta name="google-signin-client_id" content="542250373524-r2r22fi5mnt949nckdacljunei4iasg8.apps.googleusercontent.com">
-</head>
-<body>
-<div class="row">
-  <div class="col-md-3">
-    <a class="btn btn-outline-dark" href="/login" role="button" style="text-transform:none">
-      <img width="20px" style="margin-bottom:3px; margin-right:5px" alt="Google sign-in" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png" />
-      Login with Google
-    </a>
-  </div>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>google signin page</title>
+  </head>
+  <body id="bg">
+    <style>
+       @font-face {
+      font-family: "BankGothic-Lt";
+      src: url("../fonts/BankGothic-Lt-BT-Light.ttf");
+      }
+        .center1 {
+          margin: 0;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          -ms-transform: translate(-50%, -50%);
+          transform: translate(-50%, -50%);
+        }
+        .center2 {
+          margin: 0;
+          position: absolute;
+          top: 40vh;
+          left : 50vw;
+          -ms-transform: translate(-50%, -50%);
+          transform: translate(-50%, -50%);
+        }
+        .center2 h3{
+          color: white;
+        }
+        #bg{
+          background-color: rgba(0, 0, 0, 0.788);
+          height: 100vh;
+        }
+        </style>
 
-<!-- Minified CSS and JS -->
-<link   rel="stylesheet"
-        href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
-        crossorigin="anonymous">
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-        crossorigin="anonymous">
-</script>
-</body>
+        <div class="center2">
+        <h3>Sign In with your IIIT Delhi account</h3>
+        </div>
+          <div class="center1">
+
+             <div class="row">
+
+                <div class="col-md-3">
+
+                  <a class="btn btn-outline-light" href="/login" role="button" style="text-transform:none">
+
+                    <img width="20px" style="margin-bottom:3px; margin-right:5px" alt="Google sign-in" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png" />
+                    Login with Google
+                  </a>
+
+                </div>
+
+              </div>
+          </div>
+        </div>
+
+    <!-- Minified CSS and JS -->
+    <link   rel="stylesheet"
+            href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+            integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+            crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous">
+    </script>
+    </body>
 </html>

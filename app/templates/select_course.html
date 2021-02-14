@@ -1,19 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link   rel="stylesheet"
+            href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+            integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+            crossorigin="anonymous">
     <meta charset="UTF-8">
     <title>Course Selector</title>
 </head>
 <body>
+<div class="forms">
 <p> Please select the desired course: (SecA only)</p>
 <form action= "/select_course" method= "post">
-    <p><input type="radio" name="course" value="maths">Maths </p>
-    <p><input type="radio" name="course" value="dc">DC </p>
-    <p><input type="radio" name="course" value="ip">IP </p>
-    <p><input type="radio" name="course" value="ihci">IHCI </p>
-    <p><input type="submit" value="Submit" /></p>
+    <p  class="box"><input type="radio" name="course" value="maths">Maths </p>
+    <p class="box"><input type="radio" name="course" value="dc">DC </p>
+    <p class="box"><input type="radio" name="course" value="ip">IP </p>
+    <p class="box"><input type="radio" name="course" value="ihci">IHCI </p>
+    <p><input type="submit" value="Submit" id="subutton"/></p>
     <p>Please wait for the server to fetch files after you click submit.</p>
     <p> If you are facing errors, try <a href="/clear">clearing cookies</a>. If that doesn't help, <a href="mailto:aditya20016@iiitd.ac.in"> contact me</a>.</p>
 </form>
+</div>
+<style>
+    @font-face {
+    font-family: "BankGothic-Lt";
+    src: url("../fonts/BankGothic-Lt-BT-Light.ttf");
+    }
+    body{
+        background-color: rgba(0, 0, 0, 0.788);
+        color: white;
+    }
+    .forms{
+        padding: 20vh 0 0 35vw;
+    }
+    .box{
+        width:4.5vw;
+        padding:1px;
+        color:black;
+        border-radius: 4.5%;
+        background-color: white;
+    }
+    #subutton{
+        width:7vw;
+        margin-left: 11vw;
+    }
+    a{
+        text-decoration: none;
+
+    }
+</style>
 </body>
 </html>
