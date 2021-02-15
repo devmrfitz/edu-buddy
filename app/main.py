@@ -13,7 +13,7 @@ db = client['edubuddy']
 app = Flask(__name__)
 app.secret_key = os.environ['secret_key']
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = os.environ['local']
-curr_ver = "2"
+curr_ver = "3"
 os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'
 
 
