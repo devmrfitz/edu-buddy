@@ -7,7 +7,7 @@ import requests
 from pymongo import MongoClient
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
-
+import json
 client = MongoClient(os.environ['MONGODB_URI'])
 db = client['edubuddy']
 app = Flask(__name__)
@@ -210,7 +210,7 @@ def login():
     if 'https://www.googleapis.com/auth/userinfo.email' not in flask.session['scopes']:
         flask.session['scopes'].append('https://www.googleapis.com/auth/userinfo.email')
 
-    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file("app/client_secret.json",
+    flow = google_auth_oauthlib.flow.Flow.from_client_config(json.loads(os.environ['GOOGLE_SECRET']),
                                                                    scopes=flask.session['scopes'])
     flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
     authorization_url, state = flow.authorization_url(access_type="offline", include_granted_scopes="true",
@@ -223,8 +223,7 @@ def login():
 def oauth2callback():
     state = flask.session['state']
 
-    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-        "app/client_secret.json", scopes=flask.session['scopes'], state=state)
+    flow = google_auth_oauthlib.flow.Flow.from_client_config(json.loads(os.environ['GOOGLE_SECRET']), scopes=flask.session['scopes'], state=state)
     flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
 
     authorization_response = flask.request.url
