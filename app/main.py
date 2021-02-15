@@ -38,6 +38,8 @@ def credentials_to_dict(credentials):
             'scopes': credentials.scopes}
 
 
+
+
 def mark_attendance():
     oauth_service = build('oauth2', 'v2',
                           credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
