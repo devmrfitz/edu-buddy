@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="1f561939-2460-4745-9793-5af1672dbe94" name="Default Changelist" comment="temp" />
+    <list default="true" id="1f561939-2460-4745-9793-5af1672dbe94" name="Default Changelist" comment="temp">
+      <change beforePath="$PROJECT_DIR$/.env_demo" beforeDir="false" afterPath="$PROJECT_DIR$/.env_demo" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/main.py" afterDir="false" />
+    </list>
     <list id="42b4e50c-a24b-4dbc-a4a9-51b8814b1a51" name="clipboardPatchFile" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

@@ -7,6 +7,7 @@ import requests
 from pymongo import MongoClient
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
+
 client = MongoClient(os.environ['MONGODB_URI'])
 db = client['edubuddy']
 app = Flask(__name__)
@@ -14,6 +15,7 @@ app.secret_key = os.environ['secret_key']
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = os.environ['local']
 curr_ver = "2"
 os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'
+
 
 # Force HTTPS
 @app.before_request
@@ -36,8 +38,6 @@ def credentials_to_dict(credentials):
             'client_id': credentials.client_id,
             'client_secret': credentials.client_secret,
             'scopes': credentials.scopes}
-
-
 
 
 def mark_attendance():
@@ -134,7 +134,10 @@ def return_storage_drive_folder(course: str, drive_service) -> str:
 @app.route("/")
 def home_view():
     if 'credentials' not in flask.session:
-        flask.session['scopes'] = ['https://www.googleapis.com/auth/classroom.courses.readonly', 'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly', 'https://www.googleapis.com/auth/drive','https://www.googleapis.com/auth/userinfo.email','openid']
+        flask.session['scopes'] = ['https://www.googleapis.com/auth/classroom.courses.readonly',
+                                   'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly',
+                                   'https://www.googleapis.com/auth/drive',
+                                   'https://www.googleapis.com/auth/userinfo.email', 'openid']
         flask.session['dest_after_auth'] = "/front"
         return flask.render_template("signin_button.html")
     else:
@@ -156,7 +159,8 @@ def select_course():
         # empty_folder(storage_folder_id, drive_service)
         page_token = None
         while True:
-            results = classroom_service.courses().courseWorkMaterials().list(courseId=flask.session['course_id'], pageToken=page_token).execute()
+            results = classroom_service.courses().courseWorkMaterials().list(courseId=flask.session['course_id'],
+                                                                             pageToken=page_token).execute()
             for i in results['courseWorkMaterial']:
                 if 'topicId' in i:
                     if "topicId" in i and (flask.session['topic_id'] == i['topicId'] or (
@@ -186,12 +190,15 @@ def select_course():
         print("Returning redirect", flush=True)
         return redirect(url_for('final'))
     else:
-        if 'credentials' in flask.session and 'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly' in flask.session['credentials']['scopes']:
+        if 'credentials' in flask.session and 'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly' in \
+                flask.session['credentials']['scopes']:
             return render_template("select_course.html")
         else:
             if 'scopes' not in flask.session:
                 flask.session['scopes'] = []
-            flask.session['scopes'].extend(['https://www.googleapis.com/auth/classroom.courses.readonly', 'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly', 'https://www.googleapis.com/auth/drive'])
+            flask.session['scopes'].extend(['https://www.googleapis.com/auth/classroom.courses.readonly',
+                                            'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly',
+                                            'https://www.googleapis.com/auth/drive'])
             flask.session['dest_after_auth'] = "/select_course"
             return flask.redirect("/login")
 
@@ -253,7 +260,7 @@ def poll(name):
             db.store.insert_one({'purpose': "poll-" + name + "-" + request.form['result'], 'email': email})
             return "Your response for poll: <b>" + name + "</b> has been recorded."
         else:
-            return render_template("poll.html", url="/poll/"+name)
+            return render_template("poll.html", url="/poll/" + name)
     elif 'scopes' in flask.session.keys():
         flask.session['scopes'] += ['openid', 'https://www.googleapis.com/auth/userinfo.email']
         flask.session['dest_after_auth'] = "/poll/" + name
@@ -278,9 +285,9 @@ def search():
         query = request.form['search']
         id, time = find_query(query)
         if id is None:
-            return render_template("front.html", text = "Query not found.")
-        minutes = int(time/60)
-        seconds = time-minutes*60
+            return render_template("front.html", text="Query not found.")
+        minutes = int(time / 60)
+        seconds = time - minutes * 60
         return render_template("page_post_vid.html", id=id, time=time, default=query)
     else:
         return render_template("page_post_vid.html", default="")
@@ -288,8 +295,7 @@ def search():
 
 @app.route("/front")
 def front():
-    return render_template("front.html", text = "")
-
+    return render_template("front.html", text="")
 
 
 app.static_folder = 'static'
@@ -303,9 +309,9 @@ def home():
 @app.route("/get")
 def get_bot_response():
     userText = request.args.get('msg')
-    print(userText,flush=True)
+    print(userText, flush=True)
     out = reply(userText)
-    print(out,flush=True)
+    print(out, flush=True)
     return out
 
 
@@ -313,17 +319,17 @@ from googlesearch import search
 
 
 def reply(msg):
-    if(msg[0] == "/"):
-        if(msg == "/start"):
+    if (msg[0] == "/"):
+        if (msg == "/start"):
             reply = "hey there, let's get started"
-        elif("/search" in msg):
-                reply = "Sure!, here you go: "
-                query =  msg
-                query = "https://www.iiitd.ac.in:" + query.replace("/search","")
-                for j in search(query, tld="co.in", num=1, stop=1, pause=1):
-                    reply = reply+j
-                return reply
-        elif(msg == "/help"):
+        elif ("/search" in msg):
+            reply = "Sure!, here you go: "
+            query = msg
+            query = "https://www.iiitd.ac.in:" + query.replace("/search", "")
+            for j in search(query, tld="co.in", num=1, stop=1, pause=1):
+                reply = reply + j
+            return reply
+        elif (msg == "/help"):
             reply = "have a look at our documentations"
         else:
             reply = "lemme have a look..."
@@ -333,7 +339,7 @@ def reply(msg):
         line = execute(msg)
         try:
             if type(line) is int:
-                x = "app/data"+ str(line) +".txt"
+                x = "app/data" + str(line) + ".txt"
                 f = open(x, "r")
                 line = f.read()
                 f.close()
@@ -341,9 +347,10 @@ def reply(msg):
         except:
             reply = "Unsupported"
 
-    if(reply == None):
+    if (reply == None):
         reply = ""
     return reply
+
 
 from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.stem import PorterStemmer
@@ -352,6 +359,7 @@ from spacy import displacy
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
 import re, nltk
+
 nltk.download('stopwords')
 
 
@@ -363,7 +371,7 @@ def clean(text):
     text = re.sub("-", '', str(text))
     text = re.sub("— ", '', str(text))
     text = re.sub('\"', '', str(text))
-    text = re.sub(',','',str(text))
+    text = re.sub(',', '', str(text))
     text = re.sub("Mr\.", 'Mr', str(text))
     text = re.sub("Mrs\.", 'Mrs', str(text))
     text = re.sub("[\(\[].*?[\)\]]", "", str(text))
@@ -399,18 +407,18 @@ def execute(text):
     nlp = spacy.load('en_core_web_sm')
     sentence = stop_words((clean(text)))
     doc = nlp(sentence)
-    insight =[]
+    insight = []
     for token in doc:
-        if token.pos_=="NOUN":
+        if token.pos_ == "NOUN":
             insight.append(token.text)
-        elif token.pos_ =="ADJ":
+        elif token.pos_ == "ADJ":
             insight.append(token.text)
     print(insight)
-    if(len(insight)==0):
+    if (len(insight) == 0):
         return None
     index = searching(insight)
     line = None
-    if(index!= None):
+    if (index != None):
         line = index
     else:
         line = "Sorry, I didn't understand. Rephrase and ask again"
@@ -419,17 +427,18 @@ def execute(text):
 
 def searching(mylist):
     insights = mylist
-    #insights = ["tell","cricket", "stadium"]
+    # insights = ["tell","cricket", "stadium"]
 
-    game = ["game","centre","gaming","gamer","games","gam"] #0
-    library = ["lib","library","libraries","books","book","sit","sitting area","area","libs"] #1
-    infrastruture = ["infra","buildings","building","build","built","many","height","block","blocks"] #2
-    field = ["ground","field","cricket","stadium","stadiums", "courts" , " basketball", "infrastruture"] #3
-    incubation = ["incubation", "incube" , "incub" , "centre","center" , "benifits","benifit" , "special"] #4
-    swimpool = ["swim", "swimming","pool" , "pools","water" , "backstroke"] #5
-    edubuddy = ['edubuddy',"education","edubuddi" ,'lecture',"lectur","googl", 'download','help','lectures','iiitd','classroom','google', 'syllabus','course'] #6
+    game = ["game", "centre", "gaming", "gamer", "games", "gam"]  # 0
+    library = ["lib", "library", "libraries", "books", "book", "sit", "sitting area", "area", "libs"]  # 1
+    infrastruture = ["infra", "buildings", "building", "build", "built", "many", "height", "block", "blocks"]  # 2
+    field = ["ground", "field", "cricket", "stadium", "stadiums", "courts", " basketball", "infrastruture"]  # 3
+    incubation = ["incubation", "incube", "incub", "centre", "center", "benifits", "benifit", "special"]  # 4
+    swimpool = ["swim", "swimming", "pool", "pools", "water", "backstroke"]  # 5
+    edubuddy = ['edubuddy', "education", "edubuddi", 'lecture', "lectur", "googl", 'download', 'help', 'lectures',
+                'iiitd', 'classroom', 'google', 'syllabus', 'course']  # 6
 
-    checklist = [ game , library, infrastruture , field , incubation, swimpool,edubuddy]
+    checklist = [game, library, infrastruture, field, incubation, swimpool, edubuddy]
 
     matches = [0, 0, 0, 0, 0, 0, 0]
     for u in insights:
@@ -441,6 +450,6 @@ def searching(mylist):
 
     index_max = max(range(len(matches)), key=matches.__getitem__)
 
-    match_percentage = matches[index_max]/len(insights)
-    if(match_percentage >=0.5):
+    match_percentage = matches[index_max] / len(insights)
+    if (match_percentage >= 0.5):
         return index_max
