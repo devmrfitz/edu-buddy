@@ -57,8 +57,6 @@ def create_file(filename, start_time):
 
 
 if __name__ == '__main__':
-    # db.transcript.create_index([("transcript", pymongo.TEXT)])
-    # print(db.transcript.find_one({"$text": {"$search": "complement"}}))
     time = 693 #860
     # create_file(filename="app/orig.wav", start_time=time)
     insert_transcript(course='ip', id='1T_oAY8OP4aHcozPRYaejCp6k8UIWwH7z', text=transcript('app/audio.wav'), time=time)

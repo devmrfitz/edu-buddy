@@ -338,7 +338,7 @@ def reply(msg):
         line = execute(msg)
         try:
             if type(line) is int:
-                x = "app/data" + str(line) + ".txt"
+                x = "app/data/data" + str(line) + ".txt"
                 f = open(x, "r")
                 line = f.read()
                 f.close()
