@@ -163,30 +163,30 @@ def select_course():
             results = classroom_service.courses().courseWorkMaterials().list(courseId=flask.session['course_id'],
                                                                              pageToken=page_token).execute()
             for i in results['courseWorkMaterial']:
-                if "topicId" in i and (flask.session['topic_id'] == i['topicId'] or (
-                        flask.session['course'] == "ihci" and "Lecture Slides" in i['title'])):
-                    id = ""
-                    if flask.session['course'] == "ihci" or flask.session['course'] == "maths":
-                        try:
+                try:
+                    if (flask.session['topic_id'] == i['topicId'] or (
+                            flask.session['course'] == "ihci" and "Lecture Slides" in i['title'])):
+                        id = ""
+                        if flask.session['course'] == "ihci" or flask.session['course'] == "maths":
                             id = i['materials'][0]['driveFile']['driveFile']['id']
-                        except KeyError:
-                            print(i, flush=True)
-                            continue
-                    elif flask.session['course'] == "ip":
-                        for j in i['materials']:
-                            if ".ppt" in j['driveFile']['driveFile']['title']:
-                                id = j['driveFile']['driveFile']['id']
-                                break
-                    elif flask.session['course'] == "dc":
-                        for j in i['materials']:
-                            if "Lecture " in j['driveFile']['driveFile']['title'] and ".pdf" in \
-                                    j['driveFile']['driveFile'][
-                                        'title']:
-                                id = j['driveFile']['driveFile']['id']
-                                break
-                    # print("Transferring ", id)
-                    transfer_file(id, storage_folder_id, drive_service=drive_service)
-                    print("Transferred ", id, flush=True)
+                        elif flask.session['course'] == "ip":
+                            for j in i['materials']:
+                                if ".ppt" in j['driveFile']['driveFile']['title']:
+                                    id = j['driveFile']['driveFile']['id']
+                                    break
+                        elif flask.session['course'] == "dc":
+                            for j in i['materials']:
+                                if "Lecture " in j['driveFile']['driveFile']['title'] and ".pdf" in \
+                                        j['driveFile']['driveFile'][
+                                            'title']:
+                                    id = j['driveFile']['driveFile']['id']
+                                    break
+                        # print("Transferring ", id)
+                        transfer_file(id, storage_folder_id, drive_service=drive_service)
+                        print("Transferred ", id, flush=True)
+                except KeyError:
+                    print("KeyError in ", flask.session['course'], flush=True)
+                    continue
             page_token = results.get('nextPageToken', None)
             if page_token is None:
                 print("Exiting transfer", flush=True)
