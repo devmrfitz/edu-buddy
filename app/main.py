@@ -25,7 +25,7 @@ def before_request():
         url = request.url.replace('http://', 'https://', 1)
         code = 301
         return redirect(url, code=code)
-    if "ver" not in flask.session or flask.session["ver"] != curr_ver:
+    if False and ("ver" not in flask.session or flask.session["ver"] != curr_ver):
         clear_session()
         flask.session['ver'] = curr_ver
         if os.environ['local'] == '1':
@@ -134,7 +134,8 @@ def return_storage_drive_folder(course: str, drive_service) -> str:
 
 @app.route("/")
 def home_view():
-    if True or 'credentials' not in flask.session:
+    clear_session()
+    if 'credentials' not in flask.session:
         flask.session['scopes'] = ['https://www.googleapis.com/auth/classroom.courses.readonly',
                                    'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly',
                                    'https://www.googleapis.com/auth/drive',
