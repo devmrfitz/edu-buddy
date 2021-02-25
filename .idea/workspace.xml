@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="1f561939-2460-4745-9793-5af1672dbe94" name="Default Changelist" comment="temp">
-      <change beforePath="$PROJECT_DIR$/app/templates/signin_button.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/signin_button.html" afterDir="false" />
+    <list default="true" id="1f561939-2460-4745-9793-5af1672dbe94" name="Default Changelist" comment="minor">
+      <change afterPath="$PROJECT_DIR$/app/api.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/bot_brain.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/templates/temp.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/main.py" afterDir="false" />
     </list>
     <list id="42b4e50c-a24b-4dbc-a4a9-51b8814b1a51" name="clipboardPatchFile" comment="" />
     <option name="SHOW_DIALOG" value="false" />
@@ -39,9 +43,6 @@
         <option value="https://github.com/devmrfitz/edu-buddy" />
       </set>
     </option>
-  </component>
-  <component name="ProblemsViewState">
-    <option name="selectedIndex" value="1" />
   </component>
   <component name="ProjectId" id="1o9tlr4McMlJe57teA5H6gNEhTa" />
   <component name="ProjectViewState">
@@ -135,6 +136,7 @@
     <MESSAGE value="Cleanup and logo" />
     <MESSAGE value="Moved data into dedicated folder" />
     <MESSAGE value="temp" />
-    <option name="LAST_COMMIT_MESSAGE" value="temp" />
+    <MESSAGE value="minor" />
+    <option name="LAST_COMMIT_MESSAGE" value="minor" />
   </component>
 </project>
