@@ -28,3 +28,9 @@ six==1.15.0
 uritemplate==3.0.1
 urllib3==1.26.3
 Werkzeug==1.0.1
+
+google~=3.0.0
+pymongo~=3.11.3
+spacy~=3.0.3
+nltk~=3.5
+pydub~=0.24.1
