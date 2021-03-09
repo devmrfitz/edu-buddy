@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="1f561939-2460-4745-9793-5af1672dbe94" name="Default Changelist" comment="Shifted NLTK">
-      <change beforePath="$PROJECT_DIR$/app/magicsearch.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/magicsearch.py" afterDir="false" />
-    </list>
+    <list default="true" id="1f561939-2460-4745-9793-5af1672dbe94" name="Default Changelist" comment="temp" />
     <list id="42b4e50c-a24b-4dbc-a4a9-51b8814b1a51" name="clipboardPatchFile" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -215,8 +213,8 @@
     <MESSAGE value="trie" />
     <MESSAGE value="quora" />
     <MESSAGE value="collabcollect" />
-    <MESSAGE value="temp" />
     <MESSAGE value="Shifted NLTK" />
-    <option name="LAST_COMMIT_MESSAGE" value="Shifted NLTK" />
+    <MESSAGE value="temp" />
+    <option name="LAST_COMMIT_MESSAGE" value="temp" />
   </component>
 </project>
