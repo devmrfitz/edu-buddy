@@ -1,21 +1,30 @@
 
-
 from googlesearch import search
+from nltk.stem import PorterStemmer
+import spacy
+from nltk.corpus import stopwords
+import re
+import nltk
+import app.magicsearch as magicsearch
+
+nltk.download('stopwords')
 
 
 def reply(msg):
-    if (msg[0] == "/"):
-        if (msg == "/start"):
+    if msg[0] == "/":
+        if msg == "/start":
             reply = "hey there, let's get started"
-        elif ("/search" in msg):
+        elif "/search " in msg:
             reply = "Sure!, here you go: "
             query = msg
             query = "https://www.iiitd.ac.in:" + query.replace("/search", "")
             for j in search(query, tld="co.in", num=1, stop=1, pause=1):
                 reply = reply + j
             return reply
-        elif (msg == "/help"):
+        elif msg == "/help":
             reply = "have a look at our documentations"
+        elif "/magicsearch" in msg:
+            reply = magicsearch.magic_search(msg[13:])
         else:
             reply = "lemme have a look..."
     elif msg.lower() == "thanks":
@@ -35,15 +44,6 @@ def reply(msg):
     if reply is None:
         reply = ""
     return reply
-
-
-from nltk.stem import PorterStemmer
-import spacy
-from nltk.corpus import stopwords
-import re
-import nltk
-
-nltk.download('stopwords')
 
 
 def clean(text):
@@ -72,7 +72,7 @@ def sentences(text):
 
 def stop_words(text):
     stop_words = set(stopwords.words("english"))
-    filter_sentence = [i for i in text.split() if not i in stop_words]
+    filter_sentence = [i for i in text.split() if i not in stop_words]
     print(filter_sentence)
     return stemmer(filter_sentence)
 
@@ -97,11 +97,10 @@ def execute(text):
         elif token.pos_ == "ADJ":
             insight.append(token.text)
     print(insight)
-    if (len(insight) == 0):
+    if not len(insight):
         return None
     index = searching(insight)
-    line = None
-    if (index != None):
+    if index is not None:
         line = index
     else:
         line = "Sorry, I didn't understand. Rephrase and ask again"
@@ -134,5 +133,5 @@ def searching(mylist):
     index_max = max(range(len(matches)), key=matches.__getitem__)
 
     match_percentage = matches[index_max] / len(insights)
-    if (match_percentage >= 0.5):
+    if match_percentage >= 0.5:
         return index_max

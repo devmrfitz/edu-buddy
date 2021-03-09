@@ -57,13 +57,10 @@ def transfer_file(id: str, location_id: str, drive_service):
     file_metadata = {
         'parents': [location_id]
     }
-    # print(2)
-    # print(3)
     drive_service.files().copy(
         fileId=id,
         body=file_metadata
     ).execute()
-    # print(4)
 
 
 def assign_ids():
@@ -161,7 +158,6 @@ def select_course():
                               credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
 
         storage_folder_id = return_storage_drive_folder(flask.session['course'], drive_service)
-        # empty_folder(storage_folder_id, drive_service)
         page_token = None
         while True:
             results = classroom_service.courses().courseWorkMaterials().list(courseId=flask.session['course_id'],
@@ -280,7 +276,6 @@ def poll(name):
 
 
 def find_query(query):
-    posts = db.transcript
     result = db.transcript.find_one({"$text": {"$search": query}})
     if result is None:
         return None, None
@@ -294,8 +289,6 @@ def search():
         id, time = find_query(query)
         if id is None:
             return render_template("front.html", text="Query not found.")
-        minutes = int(time / 60)
-        seconds = time - minutes * 60
         return render_template("page_post_vid.html", id=id, time=time, default=query)
     else:
         return render_template("page_post_vid.html", default="")
