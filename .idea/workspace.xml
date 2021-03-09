@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="1f561939-2460-4745-9793-5af1672dbe94" name="Default Changelist" comment="major - modulised">
-      <change afterPath="$PROJECT_DIR$/app/fill_data.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/magicsearch.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/bot_brain.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/bot_brain.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/main.py" afterDir="false" />
-    </list>
+    <list default="true" id="1f561939-2460-4745-9793-5af1672dbe94" name="Default Changelist" comment="quora" />
     <list id="42b4e50c-a24b-4dbc-a4a9-51b8814b1a51" name="clipboardPatchFile" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -175,7 +169,6 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="sss intro" />
     <MESSAGE value="Major commit 1" />
     <MESSAGE value="comment out" />
     <MESSAGE value="requirements.txt" />
@@ -200,6 +193,7 @@
     <MESSAGE value="minor" />
     <MESSAGE value="major - modulised" />
     <MESSAGE value="trie" />
-    <option name="LAST_COMMIT_MESSAGE" value="trie" />
+    <MESSAGE value="quora" />
+    <option name="LAST_COMMIT_MESSAGE" value="quora" />
   </component>
 </project>
