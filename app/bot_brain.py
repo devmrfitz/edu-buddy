@@ -7,7 +7,7 @@ import re
 import nltk
 import app.magicsearch as magicsearch
 
-nltk.download('stopwords')
+# nltk.download('stopwords')
 
 
 def reply(msg):
