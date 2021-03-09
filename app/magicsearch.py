@@ -7,6 +7,7 @@ def magic_search(query: str):
     for result in search(query + " site:quora.com", num=1, stop=1, pause=1):
         break
     if "https://www.quora.com" in result or "https://quora.com" in result:
+        print("Received magicURL "+result, flush=True)
         try:
             return \
             BeautifulSoup(urlopen(result).read(), features="html.parser").prettify().split(
