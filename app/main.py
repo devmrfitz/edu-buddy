@@ -8,11 +8,9 @@ import google.oauth2.credentials
 import google_auth_oauthlib.flow
 import json
 from flask_wtf import Form
-from wtforms import TextField
 
 
-class ContactForm(Form):
-    name = TextField("Name Of Student")
+
 
 
 client = MongoClient(os.environ['MONGODB_URI'])
