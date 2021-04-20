@@ -7,11 +7,6 @@ from pymongo import MongoClient
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
 import json
-from flask_wtf import Form
-
-
-
-
 
 client = MongoClient(os.environ['MONGODB_URI'])
 db = client['edubuddy']
@@ -21,6 +16,7 @@ os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = os.environ['local']
 curr_ver = "4"
 os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'
 data_file_loc = 'app/data/course_ids'
+app.static_folder = 'static'
 
 
 # Force HTTPS
@@ -54,31 +50,14 @@ def mark_attendance():
         db.store.insert_one({'purpose': "attendance", 'email': email})
 
 
-def transfer_file(id: str, location_id: str, drive_service):
-    # print(1)
+def transfer_file(file_id: str, location_id: str, drive_service):
     file_metadata = {
         'parents': [location_id]
     }
     drive_service.files().copy(
-        fileId=id,
+        fileId=file_id,
         body=file_metadata
     ).execute()
-
-
-def assign_ids():
-    session = flask.session
-    if session['course'] == "maths":
-        session['course_id'] = "249368758666"
-        session['topic_id'] = "250043217503"
-    elif session['course'] == "dc":
-        session['course_id'] = "249364574225"
-        session['topic_id'] = "249364574230"
-    elif session['course'] == "ip":
-        session['course_id'] = "248985762843"
-        session['topic_id'] = "249714819858"
-    elif session['course'] == "ihci":
-        session['course_id'] = "222950113063"
-        session['topic_id'] = None
 
 
 def return_parent_drive_folder(drive_service) -> str:
@@ -141,7 +120,8 @@ def home_view():
         flask.session['scopes'] = ['https://www.googleapis.com/auth/classroom.courses.readonly',
                                    'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly',
                                    'https://www.googleapis.com/auth/drive',
-                                   'https://www.googleapis.com/auth/userinfo.email', 'openid', 'https://www.googleapis.com/auth/classroom.topics.readonly']
+                                   'https://www.googleapis.com/auth/userinfo.email', 'openid',
+                                   'https://www.googleapis.com/auth/classroom.topics.readonly']
         flask.session['dest_after_auth'] = "/select_course"
         return flask.render_template("signin_button.html")
     else:
@@ -158,20 +138,38 @@ def generate_form(classroom_service):
             if str(data_entry['course_id']) == str(reply_entry['id']):
                 for topic_id in data_entry['topic_ids']:
                     if topic_id:
-                        topic_name = classroom_service.courses().topics().get(courseId=reply_entry['id'], id=topic_id).execute()['name']
+                        topic_name = \
+                            classroom_service.courses().topics().get(courseId=reply_entry['id'], id=topic_id).execute()[
+                                'name']
                     else:
                         topic_name = "Special Entry"
-                    form += create_course_radio(name=reply_entry['name']+' - '+topic_name, id=reply_entry['id']+'-;-'+str(topic_id)+'-;-'+reply_entry['name'])
+                    form += create_course_radio(name=reply_entry['name'] + ' - ' + topic_name,
+                                                button_id=reply_entry['id'] + '-;-' + str(topic_id) + '-;-' +
+                                                reply_entry['name'])
                     form += "\n"
                 break
     return flask.Markup(form)
+
+
+def handle222950113063(results, drive_service, storage_folder_id): # Handles IHCI course
+    for i in results['courseWorkMaterial'][::-1]:
+        try:
+            if "Lecture Slides" in i['title']:
+                for j in i['materials']:
+                    if ".ppt" in j['driveFile']['driveFile']['title'] or ".pdf" in j['driveFile']['driveFile'][
+                            'title']:
+                        file_id = j['driveFile']['driveFile']['id']
+                        transfer_file(file_id, storage_folder_id, drive_service=drive_service)
+                        print("Transferred ", j['driveFile']['driveFile']['title'], flush=True)
+        except KeyError:
+            print("KeyError in ", flask.session['course'], flush=True)
+            continue
 
 
 @app.route("/select_course", methods=['POST', 'GET'])
 def select_course():
     if request.method == 'POST':
         flask.session['course'] = request.form['course'].split('-;-')[2]
-        # assign_ids()
 
         classroom_service = build('classroom', 'v1',
                                   credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
@@ -181,37 +179,24 @@ def select_course():
         storage_folder_id = return_storage_drive_folder(flask.session['course'], drive_service)
         page_token = None
         while True:
-            # print(classroom_service.courses().list().execute())
-            results = classroom_service.courses().courseWorkMaterials().list(courseId=request.form['course'].split('-;-')[0],
-                                                                             pageToken=page_token).execute()
-            for i in results['courseWorkMaterial'][::-1]:
-                try:
-                    if (request.form['course'].split('-;-')[1] == i['topicId'] or (
-                            request.form['course'].split('-;-')[0] == "222950113063" and "Lecture Slides" in i['title'])):
-                        id = ""
-                        for j in i['materials']:
-                            if ".ppt" in j['driveFile']['driveFile']['title'] or ".pdf" in j['driveFile']['driveFile']['title']:
-                                id = j['driveFile']['driveFile']['id']
-                                transfer_file(id, storage_folder_id, drive_service=drive_service)
-                                print("Transferred ", j['driveFile']['driveFile']['title'], flush=True)
-                        # if flask.session['course'] == "ihci" or flask.session['course'] == "maths":
-                        #     id = i['materials'][0]['driveFile']['driveFile']['id']
-                        # elif flask.session['course'] == "ip":
-                        #     for j in i['materials']:
-                        #         if ".ppt" in j['driveFile']['driveFile']['title']:
-                        #             id = j['driveFile']['driveFile']['id']
-                        #             break
-                        # elif flask.session['course'] == "dc":
-                        #     for j in i['materials']:
-                        #         if "Lecture " in j['driveFile']['driveFile']['title'] and ".pdf" in \
-                        #                 j['driveFile']['driveFile'][
-                        #                     'title']:
-                        #             id = j['driveFile']['driveFile']['id']
-                        #             break
-                        # print("Transferring ", id)
-                except KeyError:
-                    print("KeyError in ", flask.session['course'], flush=True)
-                    continue
+            results = classroom_service.courses().courseWorkMaterials().list(
+                courseId=request.form['course'].split('-;-')[0],
+                pageToken=page_token).execute()
+            if request.form['course'].split('-;-')[0] == "222950113063": # Exception: IHCI
+                handle222950113063(results, drive_service, storage_folder_id)
+            else:
+                for i in results['courseWorkMaterial'][::-1]:
+                    try:
+                        if request.form['course'].split('-;-')[1] == i['topicId']:
+                            for j in i['materials']:
+                                if ".ppt" in j['driveFile']['driveFile']['title'] or ".pdf" in j['driveFile']['driveFile'][
+                                        'title']:
+                                    file_id = j['driveFile']['driveFile']['id']
+                                    transfer_file(file_id, storage_folder_id, drive_service=drive_service)
+                                    print("Transferred ", j['driveFile']['driveFile']['title'], flush=True)
+                    except KeyError:
+                        print("KeyError in ", flask.session['course'], flush=True)
+                        continue
             page_token = results.get('nextPageToken', None)
             if page_token is None:
                 print("Exiting transfer", flush=True)
@@ -220,7 +205,8 @@ def select_course():
         return redirect(url_for('final'))
     else:
         if 'credentials' in flask.session and 'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly' in \
-                flask.session['credentials']['scopes'] and 'https://www.googleapis.com/auth/classroom.topics.readonly' in \
+                flask.session['credentials'][
+                    'scopes'] and 'https://www.googleapis.com/auth/classroom.topics.readonly' in \
                 flask.session['credentials']['scopes']:
             classroom_service = build('classroom', 'v1',
                                       credentials=google.oauth2.credentials.Credentials(**flask.session['credentials']))
@@ -304,37 +290,10 @@ def poll(name):
         return flask.render_template("signin_button.html")
 
 
-def find_query(query):
-    result = db.transcript.find_one({"$text": {"$search": query}})
-    if result is None:
-        return None, None
-    return result['vid_id'], int(result['start_time'])
-
-
-@app.route('/search', methods=['POST', 'GET'])
-def search():
-    if request.method == 'POST':
-        query = request.form['search']
-        id, time = find_query(query)
-        if id is None:
-            return render_template("front.html", text="Query not found.")
-        return render_template("page_post_vid.html", id=id, time=time, default=query)
-    else:
-        return render_template("page_post_vid.html", default="")
-
-
-@app.route("/front")
-def front():
-    return render_template("front.html", text="", form=str(ContactForm()))
-
-
-app.static_folder = 'static'
-
-
 @app.route("/chat")
 def home():
     return render_template("index.html")
 
 
-def create_course_radio(name, id):
-    return f'<p  class="box"><input type="radio" name="course" value={id}>{name} </p>'
+def create_course_radio(name, button_id):
+    return f'<p  class="box"><input type="radio" name="course" value={button_id}>{name} </p>'
