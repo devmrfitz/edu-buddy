@@ -7,8 +7,8 @@ from pymongo import MongoClient
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
 import json
-from app.bot_brain import reply
-from app.api import api
+# from app.bot_brain import reply
+# from app.api import api
 
 client = MongoClient(os.environ['MONGODB_URI'])
 db = client['edubuddy']
@@ -18,7 +18,7 @@ os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = os.environ['local']
 curr_ver = "4"
 os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'
 
-app.register_blueprint(api, url_prefix="/api")
+# app.register_blueprint(api, url_prefix="/api")
 
 
 # Force HTTPS
@@ -114,9 +114,9 @@ def return_storage_drive_folder(course: str, drive_service) -> str:
             spaces='drive',
             fields='nextPageToken, files(id, name)',
             pageToken=page_token).execute()
-        for file in response.get('files', []):
-            drive_service.files().delete(fileId=file.get("id")).execute()
-            print("Deleted", flush=True)
+        # for file in response.get('files', []):
+        #     drive_service.files().delete(fileId=file.get("id")).execute()
+        #     print("Deleted", flush=True)
         page_token = response.get('nextPageToken', None)
         if page_token is None:
             break
@@ -162,7 +162,7 @@ def select_course():
         while True:
             results = classroom_service.courses().courseWorkMaterials().list(courseId=flask.session['course_id'],
                                                                              pageToken=page_token).execute()
-            for i in results['courseWorkMaterial']:
+            for i in results['courseWorkMaterial'][::-1]:
                 try:
                     if (flask.session['topic_id'] == i['topicId'] or (
                             flask.session['course'] == "ihci" and "Lecture Slides" in i['title'])):
@@ -307,10 +307,10 @@ def home():
     return render_template("index.html")
 
 
-@app.route("/get")
-def get_bot_response():
-    userText = request.args.get('msg')
-    print(userText, flush=True)
-    out = reply(userText)
-    print(out, flush=True)
-    return out
+# @app.route("/get")
+# def get_bot_response():
+#     userText = request.args.get('msg')
+#     print(userText, flush=True)
+#     out = reply(userText)
+#     print(out, flush=True)
+#     return out
