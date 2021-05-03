@@ -1,5 +1,6 @@
 # Edu-Buddy
 ![](https://raw.githubusercontent.com/devmrfitz/edu-buddy/master/app/static/logo.png)
+#### NOTE: I'm looking for alternative free services to host Edu-Buddy as I need my Heroku account for a different project. Any suggestions would be appreciated.
 
 Edu-Buddy is an extension of SeeKer as well as a standalone product in itself. It is available at https://edu-buddy.herokuapp.com 
 
